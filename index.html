@@ -100,7 +100,11 @@ const scoreInfo = document.getElementById("scoreInfo");
 const weaponsInfo = document.getElementById("weaponsInfo");
 const livesInfo = document.getElementById("livesInfo");
 
-const player = {x:50,y:50,w:25,h:25,speed:5};
+const player = {x:50,y:50,w:25,h:25,speed:3};
+if(isMobileDevice()){
+    player = {x:50,y:50,w:25,h:25,speed:5};
+}
+
 let score = 0;
 let collected = [];
 let currentRoom = "BALLROOM";
