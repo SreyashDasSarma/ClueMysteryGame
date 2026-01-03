@@ -31,9 +31,10 @@ canvas { background-color:#b4b4b4; display:block; margin:5px; border:1px solid b
 }
 
 #buttonControls button {
-  font-size: 28px;
-  padding: 15px 20px;
+  font-size: 40px;
+  padding: 20px 25px;
   margin: 5px;
+  border-radius: 8px;
 }
 
 /* Cheat input styling */
@@ -48,10 +49,10 @@ canvas { background-color:#b4b4b4; display:block; margin:5px; border:1px solid b
 <h2>Clue: The Floors of Mystery</h2>
 
 <div id="hud">
- <p id="roomInfo">Room: KITCHEN</p>
+ <p id="roomInfo">Room: BALLROOM</p>
  <p id="floorInfo">Floor: 1</p>
  <p id="scoreInfo">Score: 0</p>
- <p id="weaponsInfo">Weapons: 0/requiredWeapons</p>
+ <p id="weaponsInfo">Weapons: 0/6</p>
  <p id="livesInfo">Lives: 3</p>
 </div>
 
@@ -66,7 +67,7 @@ canvas { background-color:#b4b4b4; display:block; margin:5px; border:1px solid b
 </div>
 
 <div id="cheatContainer">
-  <input type="text" id="cheatInput" placeholder="Type HEre">
+  <input type="text" id="cheatInput" placeholder="Type Here">
   <button id="cheatButton">Activate</button>
   <p id="cheatDisplay"></p>
 </div>
