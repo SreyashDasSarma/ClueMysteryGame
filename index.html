@@ -227,7 +227,12 @@ document.addEventListener('keydown', e=>{
      cheatDisplay.textContent = "Type Here: ";
    }
  }
-
+document.addEventListener("keydown", e => {
+ if(e.key==="ArrowLeft") player.x -= player.speed;
+ if(e.key==="ArrowRight") player.x += player.speed;
+ if(e.key==="ArrowUp") player.y -= player.speed;
+ if(e.key==="ArrowDown") player.y += player.speed;
+});
 
  const prevX = player.x, prevY = player.y;
  if(e.key==="ArrowLeft") player.x -= player.speed;
