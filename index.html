@@ -80,13 +80,11 @@ canvas { background-color:#b4b4b4; display:block; margin:5px; border:1px solid b
 </div>
 
 <script>
-// =====================
-// CORE GAME VARIABLES
-// =====================
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const mapCanvas = document.getElementById('mapCanvas');
 const mapCtx = mapCanvas.getContext('2d');
+
 let stairCooldown = 0;
 let vkyekoCooldown = 0;
 
@@ -96,279 +94,170 @@ const scoreInfo = document.getElementById("scoreInfo");
 const weaponsInfo = document.getElementById("weaponsInfo");
 const livesInfo = document.getElementById("livesInfo");
 
-const player = {x:50,y:50,w:25,h:25,speed:5};
+const player = {x:50, y:50, w:25, h:25, speed:5};
 let score = 0;
 let collected = [];
 let currentRoom = "BALLROOM";
 let showMap = false;
 let lives = 3;
 let gameOver = false;
+
+// Guards
+let guards = [
+  {x:200,y:150,w:25,h:25,speed:2,dx:1,dy:0,room:"BALLROOM"},
+  {x:500,y:400,w:25,h:25,speed:1.5,dx:0,dy:1,room:"DINING ROOM"}
+];
+
 let requiredWeapons = 6;
 let deathPenalty = 1;
 
-// =====================
-// GUARDS
-// =====================
-let guards = [
- {x:200,y:150,w:25,h:25,speed:2,dx:1,dy:0,room:"BALLROOM"},
- {x:500,y:400,w:25,h:25,speed:1.5,dx:0,dy:1,room:"DINING ROOM"}
-];
-
-function moveGuards(){
-  for(const g of guards){
-    if(g.room !== currentRoom) continue;
-    g.x += g.dx * g.speed;
-    g.y += g.dy * g.speed;
-    g.x = Math.max(10, Math.min(g.x, 790-g.w));
-    g.y = Math.max(10, Math.min(g.y, 590-g.h));
-    if(Math.random() < 0.01){
-      g.dx = Math.floor(Math.random()*3)-1;
-      g.dy = Math.floor(Math.random()*3)-1;
+const cheatCodes = {
+  "INZPYL": () => {
+    for (let i = 0; i < 15; i++) {
+      guards.push({
+        x: Math.random() * 700 + 50,
+        y: Math.random() * 500 + 50,
+        w: 25,
+        h: 25,
+        speed: 1 + Math.random() * 2,
+        dx: Math.floor(Math.random() * 3) - 1,
+        dy: Math.floor(Math.random() * 3) - 1,
+        room: currentRoom
+      });
     }
-    if(player.x < g.x+g.w && player.x+player.w > g.x &&
-       player.y < g.y+g.h && player.y+player.h > g.y){
-      lives -= deathPenalty;
-      updateHUD();
-      if(lives <= 0){
-        gameOver = true;
-        alert("Game Over!");
-      } else {
-        player.x = 50; player.y = 50;
+  },
+  "ESPTVX": () => { requiredWeapons += 18; spawnExtraWeapons(18); },
+  "VKYEKO": () => {
+    if (vkyekoCooldown > 0) { alert("VKYEKO on cooldown!"); return; }
+    vkyekoCooldown = 300;
+    let allRooms = Object.keys(ROOMS);
+    let changed = 0;
+    for (const r of allRooms) {
+      for (const d of ROOMS[r].doors) {
+        if (changed >= 3) return;
+        let wrong;
+        do { wrong = allRooms[Math.floor(Math.random()*allRooms.length)]; } while (wrong === d.to);
+        d.to = wrong;
+        changed++;
+      }
+    }
+  },
+  "LNVNLS": () => { lives += 8; updateHUD(); },
+  "VKOGPZ": () => {
+    let allRooms = Object.keys(ROOMS);
+    for (let i = 0; i < 9; i++) {
+      const from = ROOMS[allRooms[Math.floor(Math.random()*allRooms.length)]];
+      const to = allRooms[Math.floor(Math.random()*allRooms.length)];
+      from.doors.push({
+        x: (Math.random() < 0.5 ? 0 : 1) * 800,
+        y: Math.random() * 500 + 20,
+        w: 20, h: 80, to
+      });
+    }
+  },
+  "NKUGLA": () => { deathPenalty = 4; }
+};
+
+let cheatBuffer = "";
+const cheatDisplay = document.getElementById('cheatDisplay');
+
+// --- Cheat typing only ---
+document.addEventListener('keydown', e => {
+  if(gameOver) return;
+  const key = e.key.toUpperCase();
+  if(/^[A-Z]$/.test(key)){
+    cheatBuffer += key;
+    cheatDisplay.textContent = "Cheat Code: " + cheatBuffer;
+    for(const code in cheatCodes){
+      if(cheatBuffer.endsWith(code)){
+        cheatCodes[code]();
+        cheatBuffer = "";
+        cheatDisplay.textContent = "Type Here: ";
       }
     }
   }
+  if(e.key === "Backspace"){
+    cheatBuffer = cheatBuffer.slice(0,-1);
+    cheatDisplay.textContent = "Cheat Code: " + cheatBuffer;
+  }
+});
+
+// --- Keyboard movement ---
+const keysPressed = {};
+document.addEventListener('keydown', e => { if(!gameOver) keysPressed[e.key] = true; });
+document.addEventListener('keyup', e => { if(!gameOver) keysPressed[e.key] = false; });
+
+function handleKeyboardMovement(){
+  if(keysPressed["ArrowLeft"]) moveFromButton("left");
+  if(keysPressed["ArrowRight"]) moveFromButton("right");
+  if(keysPressed["ArrowUp"]) moveFromButton("up");
+  if(keysPressed["ArrowDown"]) moveFromButton("down");
+  requestAnimationFrame(handleKeyboardMovement);
+}
+handleKeyboardMovement();
+
+// --- Mobile arrows ---
+function isMobileDevice() {
+  return /Android|iPhone|iPad|iPod|Mobile|Tablet/i.test(navigator.userAgent);
 }
 
-// =====================
-// ROOMS
-// =====================
-const ROOMS = {
-  "KITCHEN":{floor:1,weapons:[{name:"Knife",x:50,y:50,w:20,h:20}],walls:[{x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},{x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}],doors:[{x:780,y:250,w:20,h:100,to:"BALLROOM"}],stairs:null},
-  "BALLROOM":{floor:1,weapons:[{name:"Candlestick",x:300,y:100,w:20,h:20}],walls:[{x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},{x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}],doors:[{x:0,y:250,w:20,h:100,to:"KITCHEN"},{x:350,y:580,w:100,h:20,to:"DINING ROOM"},{x:780,y:100,w:20,h:100,to:"HALL"}],stairs:null},
-  "HALL":{floor:1,weapons:[{name:"Pistol",x:200,y:100,w:20,h:20}],walls:[{x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},{x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}],doors:[{x:0,y:100,w:20,h:100,to:"BALLROOM"}],stairs:null},
-  "DINING ROOM":{floor:1,weapons:[{name:"Wrench",x:100,y:50,w:20,h:20}],walls:[{x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},{x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}],doors:[{x:350,y:0,w:100,h:20,to:"BALLROOM"}],stairs:{x:740,y:540,w:50,h:50,to:"ART ROOM"},objects:[{type:"circle",x:400,y:300,radius:50,color:"#FFFF99"}]},
-  "ART ROOM":{floor:2,weapons:[{name:"Lead Pipe",x:600,y:100,w:20,h:20}],walls:[{x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},{x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}],doors:[{x:0,y:250,w:20,h:100,to:"CONSERVATORY"}],stairs:{x:10,y:540,w:50,h:50,to:"DINING ROOM"},objects:[{type:"rect",x:100,y:100,w:80,h:50,color:"#FF0000"},{type:"rect",x:600,y:100,w:80,h:50,color:"#00FF00"},{type:"rect",x:100,y:400,w:80,h:50,color:"#0000FF"},{type:"rect",x:600,y:400,w:80,h:50,color:"#FFFF00"}]},
-  "CONSERVATORY":{floor:2,weapons:[{name:"Rope",x:600,y:50,w:20,h:20}],walls:[{x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},{x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}],doors:[{x:780,y:250,w:20,h:100,to:"ART ROOM"}],stairs:null,objects:[{type:"circle",x:100,y:100,radius:20,color:"#228B22"},{type:"circle",x:300,y:150,radius:20,color:"#228B22"},{type:"circle",x:500,y:100,radius:20,color:"#228B22"},{type:"circle",x:200,y:300,radius:20,color:"#228B22"},{type:"circle",x:600,y:200,radius:20,color:"#228B22"}]}
-};
+if(isMobileDevice()){
+  const buttonControls = document.createElement("div");
+  buttonControls.id = "buttonControls";
+  buttonControls.style.display = "block";
+  buttonControls.innerHTML = `
+    <button data-dir="up">↑</button>
+    <br>
+    <button data-dir="left">←</button>
+    <button data-dir="down">↓</button>
+    <button data-dir="right">→</button>
+  `;
+  document.body.appendChild(buttonControls);
 
-// =====================
-// MOVEMENT & COLLISIONS
-// =====================
+  const arrowButtons = buttonControls.querySelectorAll("button");
+  const activeDirs = {};
+
+  arrowButtons.forEach(btn=>{
+    const dir = btn.getAttribute("data-dir");
+    btn.addEventListener("touchstart", e=>{ e.preventDefault(); activeDirs[dir]=true; });
+    btn.addEventListener("touchend", e=>{ e.preventDefault(); activeDirs[dir]=false; });
+  });
+
+  function handleTouchMovement(){
+    for(const dir in activeDirs){
+      if(activeDirs[dir]) moveFromButton(dir);
+    }
+    requestAnimationFrame(handleTouchMovement);
+  }
+  handleTouchMovement();
+}
+
+// --- Movement function ---
 function moveFromButton(direction){
   if(gameOver) return;
   const prevX = player.x;
   const prevY = player.y;
+
   if(direction==="left") player.x -= player.speed;
   if(direction==="right") player.x += player.speed;
   if(direction==="up") player.y -= player.speed;
   if(direction==="down") player.y += player.speed;
+
   handleCollisions(prevX, prevY);
   updateHUD();
 }
 
-function handleCollisions(prevX, prevY){
- const room = ROOMS[currentRoom];
- if(stairCooldown>0) stairCooldown--;
- player.x = Math.max(10, Math.min(player.x, 790-player.w));
- player.y = Math.max(10, Math.min(player.y, 590-player.h));
- for(const w of room.walls){
-   if(player.x+player.w > w.x && player.x < w.x + w.w &&
-      player.y+player.h > w.y && player.y < w.y + w.h){
-     player.x = prevX;
-     player.y = prevY;
-   }
- }
- for(let i=room.weapons.length-1;i>=0;i--){
-   const w = room.weapons[i];
-   if(player.x < w.x + w.w && player.x + player.w > w.x &&
-      player.y < w.y + w.h && player.y + player.h > w.y){
-       collected.push(w.name);
-       room.weapons.splice(i,1);
-       score+=100;
-   }
- }
- for(const d of room.doors){
-   if(player.x < d.x+d.w && player.x+player.w>d.x &&
-      player.y<d.y+d.h && player.y+player.h>d.y){
-     currentRoom = d.to;
-     if(d.x===0) player.x=760; else if(d.x>=780) player.x=20;
-     if(d.y===0) player.y=560; else if(d.y>=580) player.y=20;
-   }
- }
- if(room.stairs && stairCooldown===0 &&
-    player.x<room.stairs.x+room.stairs.w && player.x+player.w>room.stairs.x &&
-    player.y<room.stairs.y+room.stairs.h && player.y+player.h>room.stairs.y){
-      stairCooldown=10;
-      const targetRoom = room.stairs.to;
-      const fromFloor = room.floor;
-      const toFloor = ROOMS[targetRoom].floor;
-      currentRoom = targetRoom;
-      if(toFloor>fromFloor){ player.x=60; }
-      else{ player.y=500; }
-    }
-}
-
-// =====================
-// HUD
-// =====================
-function updateHUD(){
- const room = ROOMS[currentRoom];
- roomInfo.textContent = "Room: " + currentRoom;
- floorInfo.textContent = "Floor: " + room.floor;
- scoreInfo.textContent = "Score: " + score;
- weaponsInfo.textContent = "Weapons: " + collected.length + "/" + requiredWeapons;
- livesInfo.textContent = "Lives: " + lives;
-}
-
-// =====================
-// DRAW
-// =====================
-function draw(){
- if(gameOver) return;
- ctx.clearRect(0,0,canvas.width,canvas.height);
- const room = ROOMS[currentRoom];
-
- ctx.fillStyle="#FFC8C8";
- ctx.fillRect(0,0,canvas.width,canvas.height);
-
- ctx.fillStyle="#000";
- for(const w of room.walls) ctx.fillRect(w.x,w.y,w.w,w.h);
-
- ctx.fillStyle="#FFD700";
- for(const d of room.doors) ctx.fillRect(d.x,d.y,d.w,d.h);
-
- if(room.stairs){
-   ctx.fillStyle="#969696";
-   ctx.fillRect(room.stairs.x,room.stairs.y,room.stairs.w,room.stairs.h);
-   ctx.fillStyle="black";
-   ctx.fillText("STAIRS",room.stairs.x+5,room.stairs.y+30);
- }
-
- if(room.objects){
-   for(const obj of room.objects){
-     ctx.fillStyle=obj.color||"gray";
-     if(obj.type==="circle"){
-       ctx.beginPath();
-       ctx.arc(obj.x,obj.y,obj.radius,0,Math.PI*2);
-       ctx.fill();
-     } else ctx.fillRect(obj.x,obj.y,obj.w,obj.h);
-   }
- }
-
- ctx.fillStyle="#8B0000";
- for(const w of room.weapons) ctx.fillRect(w.x,w.y,w.w,w.h);
-
- ctx.fillStyle="#3264FF";
- ctx.fillRect(player.x,player.y,player.w,player.h);
-
- for(const g of guards){
-   if(g.room!==currentRoom) continue;
-   ctx.fillStyle="red";
-   ctx.fillRect(g.x,g.y,g.w,g.h);
- }
- moveGuards();
-
- if(collected.length>=requiredWeapons){
-   ctx.fillStyle="white";
-   ctx.fillRect(0,0,canvas.width,canvas.height);
-   ctx.fillStyle="black";
-   ctx.font="30px sans-serif";
-   ctx.fillText("YOU WIN!",300,250);
-   ctx.fillText(`FINAL SCORE: ${score}`,250,300);
-   gameOver=true;
- }
-
- if(showMap) drawMap();
-}
-
-// =====================
-// MAP
-// =====================
-function drawMap(){
- mapCtx.clearRect(0,0,mapCanvas.width,mapCanvas.height);
- const roomW = mapCanvas.width/3;
- const roomH = mapCanvas.height/2;
- let i=0;
- for(const r in ROOMS){
-   const col=i%3;
-   const row=Math.floor(i/3);
-   const x=col*roomW;
-   const y=row*roomH;
-   const floor=ROOMS[r].floor;
-   mapCtx.fillStyle=floor===1?"#AAAAAA":"#87CEFA";
-   if(r===currentRoom) mapCtx.fillStyle="#FFD700";
-   mapCtx.fillRect(x,y,roomW-5,roomH-5);
-   mapCtx.fillStyle="black";
-   mapCtx.font="12px sans-serif";
-   mapCtx.fillText(r,x+5,y+15);
-   mapCtx.fillText(`F${floor}`,x+5,y+30);
-   i++;
- }
-}
-
-// =====================
-// UPDATE LOOP
-// =====================
+// --- Game loop ---
 function update(){
- if(vkyekoCooldown>0) vkyekoCooldown--;
- draw();
- requestAnimationFrame(update);
+  if(vkyekoCooldown>0) vkyekoCooldown--;
+  draw();
+  requestAnimationFrame(update);
 }
+
 ctx.font="16px sans-serif";
 mapCtx.font="12px sans-serif";
 update();
 updateHUD();
-
-// =====================
-// BUTTONS & INSTRUCTIONS
-// =====================
-document.getElementById("mapButton").addEventListener("click",()=>{
- showMap=!showMap;
- mapCanvas.style.display=showMap?"block":"none";
-});
-document.getElementById("instructionButton").addEventListener("click",()=>{
- instructions.style.display = instructions.style.display==="none"?"block":"none";
-});
-
-// =====================
-// KEYBOARD
-// =====================
-const keysPressed={};
-document.addEventListener('keydown',e=>{if(gameOver)return; keysPressed[e.key]=true;});
-document.addEventListener('keyup',e=>{keysPressed[e.key]=false;});
-function handleKeyboardMovement(){
- if(keysPressed["ArrowLeft"]) moveFromButton("left");
- if(keysPressed["ArrowRight"]) moveFromButton("right");
- if(keysPressed["ArrowUp"]) moveFromButton("up");
- if(keysPressed["ArrowDown"]) moveFromButton("down");
- requestAnimationFrame(handleKeyboardMovement);
-}
-handleKeyboardMovement();
-
-// =====================
-// MOBILE ARROWS
-// =====================
-function isMobileDevice(){return /Android|iPhone|iPad|iPod|Mobile|Tablet/i.test(navigator.userAgent);}
-if(isMobileDevice()){
- const buttonControls = document.getElementById("buttonControls");
- buttonControls.style.display="block";
- const arrowButtons = buttonControls.querySelectorAll("button");
- const activeDirs={};
-
- arrowButtons.forEach(btn=>{
-   const dir=btn.getAttribute("data-dir");
-   btn.addEventListener("touchstart",e=>{e.preventDefault(); activeDirs[dir]=true;});
-   btn.addEventListener("touchend",e=>{e.preventDefault(); activeDirs[dir]=false;});
- });
-
- function handleTouchMovement(){
-   for(const dir in activeDirs){
-     if(activeDirs[dir]) moveFromButton(dir);
-   }
-   requestAnimationFrame(handleTouchMovement);
- }
- handleTouchMovement();
-}
 </script>
 <div id="buttonControls" style="display:none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 100;">
   <div style="text-align:center;">
