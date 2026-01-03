@@ -50,7 +50,6 @@ canvas { background-color:#b4b4b4; display:block; margin:5px; border:1px solid b
 
 <div id="hud">
  <p id="roomInfo">Room: BALLROOM</p>
- <p id="floorInfo">Floor: 1</p>
  <p id="scoreInfo">Score: 0</p>
  <p id="weaponsInfo">Weapons: 0/6</p>
  <p id="livesInfo">Lives: 3</p>
@@ -132,7 +131,9 @@ const cheatCodes = {
       });
     }
   },
-  "ESPTVX": () => { requiredWeapons += 18; spawnExtraWeapons(18); },
+  "ESPTVX": () => {
+    requiredWeapons += 18; spawnExtraWeapons(18);
+  },
   "VKYEKO": () => {
     if(vkyekoCooldown>0){alert("VKYEKO on cooldown!");return;}
     vkyekoCooldown = 300;
@@ -171,6 +172,7 @@ function activateCheat(code){
     cheatCodes[code]();
     cheatInput.value = "";
     cheatDisplay.textContent = "Cheat activated: " + code;
+    updateHUD();
   } else {
     cheatDisplay.textContent = "Invalid cheat: " + code;
   }
@@ -236,7 +238,6 @@ if(isMobileDevice()){
 function updateHUD(){
  const room = ROOMS[currentRoom];
  roomInfo.textContent = "Room: "+currentRoom;
- floorInfo.textContent = "Floor: "+room.floor;
  scoreInfo.textContent = "Score: "+score;
  weaponsInfo.textContent = "Weapons: "+collected.length+"/"+requiredWeapons;
  livesInfo.textContent = "Lives: "+lives;
