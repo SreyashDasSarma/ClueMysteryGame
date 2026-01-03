@@ -3,570 +3,267 @@
 <head>
 <meta charset="UTF-8">
 <title>Clue: The Floors of Mystery</title>
+
 <style>
 body { text-align:center; font-family:sans-serif; position: relative; }
+
 #hud { margin-bottom:10px; font-size:16px; }
 #hud p { margin:2px; }
-#gameContainer { display:flex; justify-content:center; align-items:flex-start; }
-canvas { background-color:#b4b4b4; display:block; margin:5px; border:1px solid black; }
+
+#gameContainer {
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+}
+
+canvas {
+  background-color:#b4b4b4;
+  display:block;
+  margin:5px;
+  border:1px solid black;
+}
+
 #cheatDisplay { font-size:16px; margin-top:10px; }
-#mapButton, #instructionButton { margin:10px; padding:5px 10px; font-size:16px; }
+
+#mapButton, #instructionButton {
+  margin:10px;
+  padding:5px 10px;
+  font-size:16px;
+}
+
 #instructions {
- display:none;
- position:absolute;
- left:10px;
- top:100px;
- background-color:#f0f0f0;
- padding:10px;
- border:1px solid #000;
- text-align:left;
+  display:none;
+  position:absolute;
+  left:10px;
+  top:100px;
+  background-color:#f0f0f0;
+  padding:10px;
+  border:1px solid #000;
+  text-align:left;
+}
+
+/* ---------- MOBILE CONTROLS ---------- */
+#mobileControls {
+  position: fixed;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: none;
+  z-index: 10;
+}
+
+#mobileControls button {
+  font-size: 24px;
+  padding: 15px 20px;
+  margin: 5px;
+}
+
+/* Show only on touch devices */
+@media (pointer: coarse) {
+  #mobileControls {
+    display: block;
+  }
 }
 </style>
 </head>
+
 <body>
 <h2>Clue: The Floors of Mystery</h2>
 
-
 <div id="hud">
- <p id="roomInfo">Room: KITCHEN</p>
- <p id="floorInfo">Floor: 1</p>
- <p id="scoreInfo">Score: 0</p>
- <p id="weaponsInfo">Weapons: 0/requiredWeapons</p>
- <p id="livesInfo">Lives: 3</p>
+  <p id="roomInfo">Room:</p>
+  <p id="floorInfo">Floor:</p>
+  <p id="scoreInfo">Score:</p>
+  <p id="weaponsInfo">Weapons:</p>
+  <p id="livesInfo">Lives:</p>
 </div>
-
 
 <div id="gameContainer">
- <canvas id="gameCanvas" width="800" height="600"></canvas>
- <canvas id="mapCanvas" width="300" height="600" style="display:none;"></canvas>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <canvas id="mapCanvas" width="300" height="600" style="display:none;"></canvas>
 </div>
+
 <div>
- <button id="mapButton">Toggle Map</button>
- <button id="instructionButton">Toggle Instructions</button>
+  <button id="mapButton">Toggle Map</button>
+  <button id="instructionButton">Toggle Instructions</button>
 </div>
 
-
-<div id="cheatDisplay">Cheat Code: </div>
-
+<div id="cheatDisplay">Cheat Code:</div>
 
 <p id="instructions">
-1. Use the arrow keys to travel between rooms. <br>
-2. Navigate the mansion to collect all six weapons. <br>
-3. Avoid the guards! Each guard hit costs a life. <br>
-4. You have 3 lives. Lose all, and it's Game Over. <br>
-5. Check the map to view your location.
-
+1. Use arrow keys or touch controls to move.<br>
+2. Collect all weapons.<br>
+3. Avoid guards!<br>
+4. You have 3 lives.<br>
+5. Use the map to navigate.
 </p>
 
+<!-- MOBILE BUTTONS -->
+<div id="mobileControls">
+  <button data-dir="up">⬆️</button>
+  <div>
+    <button data-dir="left">⬅️</button>
+    <button data-dir="down">⬇️</button>
+    <button data-dir="right">➡️</button>
+  </div>
+</div>
 
 <script>
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-const mapCanvas = document.getElementById('mapCanvas');
-const mapCtx = mapCanvas.getContext('2d');
-let stairCooldown = 0; // prevents stair retrigger glitch
-let vkyekoCooldown = 0; // cooldown timer for VKYEKO cheat
+/* ---------- CANVAS ---------- */
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const mapCanvas = document.getElementById("mapCanvas");
+const mapCtx = mapCanvas.getContext("2d");
 
-
+/* ---------- HUD ---------- */
 const roomInfo = document.getElementById("roomInfo");
 const floorInfo = document.getElementById("floorInfo");
 const scoreInfo = document.getElementById("scoreInfo");
 const weaponsInfo = document.getElementById("weaponsInfo");
 const livesInfo = document.getElementById("livesInfo");
 
-
-const player = {x:50,y:50,w:25,h:25,speed:5};
+/* ---------- GAME STATE ---------- */
+const player = { x:50, y:50, w:25, h:25, speed:5 };
 let score = 0;
 let collected = [];
 let currentRoom = "BALLROOM";
 let showMap = false;
 let lives = 3;
 let gameOver = false;
+let stairCooldown = 0;
 
-
-// ---------- GUARDS ----------
-let guards = [
- {x:200,y:150,w:25,h:25,speed:2,dx:1,dy:0,room:"BALLROOM"},
- {x:500,y:400,w:25,h:25,speed:1.5,dx:0,dy:1,room:"DINING ROOM"}
-];
-
-
-function moveGuards(){
- for(const g of guards){
-   if(g.room !== currentRoom) continue;
-   g.x += g.dx * g.speed;
-   g.y += g.dy * g.speed;
-
-
-   g.x = Math.max(10, Math.min(g.x, 790-g.w));
-   g.y = Math.max(10, Math.min(g.y, 590-g.h));
-
-
-   if(Math.random() < 0.01){
-     g.dx = Math.floor(Math.random()*3)-1;
-     g.dy = Math.floor(Math.random()*3)-1;
-   }
-
-
-   // Collision with player
-   if(player.x < g.x+g.w && player.x+player.w > g.x &&
-      player.y < g.y+g.h && player.y+player.h > g.y){
-     lives -= deathPenalty;
-     updateHUD();
-     if(lives <= 0){
-       gameOver = true;
-       alert("Game Over!");
-     } else {
-       // Reset player position if lives remain
-       player.x = 50;
-       player.y = 50;
-     }
-   }
- }
-}
-
-
-let requiredWeapons = 6;
-let deathPenalty = 1;
-
-const cheatCodes = {
-  // 15 guards spawn into current room
-  "INZPYL": () => {
-    for (let i = 0; i < 15; i++) {
-      guards.push({
-        x: Math.random() * 700 + 50,
-        y: Math.random() * 500 + 50,
-        w: 25,
-        h: 25,
-        speed: 1 + Math.random() * 2,
-        dx: Math.floor(Math.random() * 3) - 1,
-        dy: Math.floor(Math.random() * 3) - 1,
-        room: currentRoom
-      });
-    }
-  },
-
-  // 18 more weapons required
-  "ESPTVX": () => {
-    requiredWeapons += 18;
-    spawnExtraWeapons(18);
-  },
-
-  // 3 doors lead to incorrect rooms
-  "VKYEKO": () => {
-    if (vkyekoCooldown > 0) {
-      alert("VKYEKO is on cooldown!");
-      return;
-    }
-
-    vkyekoCooldown = 300; // ~10 seconds at 60fps
-
-    let allRooms = Object.keys(ROOMS);
-    let changed = 0;
-
-    for (const r of allRooms) {
-      for (const d of ROOMS[r].doors) {
-        if (changed >= 3) return;
-
-        let wrong;
-        do {
-          wrong = allRooms[Math.floor(Math.random() * allRooms.length)];
-        } while (wrong === d.to);
-
-        d.to = wrong;
-        changed++;
-      }
-    }
-  },
-
-
-  // gain 8 lives
-  "LNVNLS": () => {
-    lives += 8;
-    updateHUD();
-  },
-
-  // 9 new doors are formed
-  "VKOGPZ": () => {
-    let allRooms = Object.keys(ROOMS);
-    for (let i = 0; i < 9; i++) {
-      const from = ROOMS[allRooms[Math.floor(Math.random() * allRooms.length)]];
-      const to = allRooms[Math.floor(Math.random() * allRooms.length)];
-      from.doors.push({
-        x: (Math.random() < 0.5 ? 0 : 1) * 800,
-        y: Math.random() * 500 + 20,
-        w: 20,
-        h: 80,
-        to
-      });
-    }
-  },
-
-  // lose 4 lives per hit
-  "NKUGLA": () => {
-    deathPenalty = 4;
-  }
-};
-
-
-
-let cheatBuffer = "";
-const cheatDisplay = document.getElementById('cheatDisplay');
-
-
-document.addEventListener('keydown', e=>{
- if(gameOver) return;
- const key = e.key.toUpperCase();
- if(/^[A-Z]$/.test(key)) cheatBuffer+=key;
- if(e.key==="Backspace") cheatBuffer=cheatBuffer.slice(0,-1);
- cheatDisplay.textContent = "Cheat Code: " + cheatBuffer;
- for(const code in cheatCodes){
-   if(cheatBuffer.endsWith(code)){
-     cheatCodes[code]();
-     cheatBuffer="";
-     cheatDisplay.textContent = "Type Here: ";
-   }
- }
-document.addEventListener("keydown", e => {
- if(e.key==="ArrowLeft") player.x -= player.speed;
- if(e.key==="ArrowRight") player.x += player.speed;
- if(e.key==="ArrowUp") player.y -= player.speed;
- if(e.key==="ArrowDown") player.y += player.speed;
-});
-
- const prevX = player.x, prevY = player.y;
- if(e.key==="ArrowLeft") player.x -= player.speed;
- if(e.key==="ArrowRight") player.x += player.speed;
- if(e.key==="ArrowUp") player.y -= player.speed;
- if(e.key==="ArrowDown") player.y += player.speed;
-
-
- handleCollisions(prevX, prevY);
- updateHUD();
-});
-
-
-// ---------- ROOMS ----------
+/* ---------- ROOMS ---------- */
 const ROOMS = {
-  "KITCHEN":{
-    floor:1,
-    weapons:[{name:"Knife",x:50,y:50,w:20,h:20}],
-    walls:[
-      {x:0,y:0,w:800,h:10},
-      {x:0,y:0,w:10,h:600},
-      {x:790,y:0,w:10,h:600},
-      {x:0,y:590,w:800,h:10}
-    ],
-    doors:[{x:780,y:250,w:20,h:100,to:"BALLROOM"}],
-    stairs:null
-  },
-  "BALLROOM":{
-    floor:1,
-    weapons:[{name:"Candlestick",x:300,y:100,w:20,h:20}],
-    walls:[
-      {x:0,y:0,w:800,h:10},
-      {x:0,y:0,w:10,h:600},
-      {x:790,y:0,w:10,h:600},
-      {x:0,y:590,w:800,h:10}
-    ],
-    doors:[
-      {x:0,y:250,w:20,h:100,to:"KITCHEN"},
-      {x:350,y:580,w:100,h:20,to:"DINING ROOM"},
-      {x:780,y:100,w:20,h:100,to:"HALL"}
-    ],
-    stairs:null
-  },
-  "HALL":{
-    floor:1,
-    weapons:[{name:"Pistol",x:200,y:100,w:20,h:20}],
-    walls:[
-      {x:0,y:0,w:800,h:10},
-      {x:0,y:0,w:10,h:600},
-      {x:790,y:0,w:10,h:600},
-      {x:0,y:590,w:800,h:10}
-    ],
-    doors:[
-      {x:0,y:100,w:20,h:100,to:"BALLROOM"}
-    ],
-    stairs:null
-  },
-  "DINING ROOM":{
-    floor:1,
-    weapons:[
-      {name:"Wrench",x:100,y:50,w:20,h:20}
-    ],
-    walls:[
-      {x:0,y:0,w:800,h:10},
-      {x:0,y:0,w:10,h:600},
-      {x:790,y:0,w:10,h:600},
-      {x:0,y:590,w:800,h:10}
-    ],
-    doors:[
-      {x:350,y:0,w:100,h:20,to:"BALLROOM"}
-    ],
-    stairs:{x:740,y:540,w:50,h:50,to:"ART ROOM"},
-    objects:[{type:"circle",x:400,y:300,radius:50,color:"#FFFF99"}]
-  },
-  "ART ROOM":{
-    floor:2,
-    weapons:[{name:"Lead Pipe",x:600,y:100,w:20,h:20}],
-    walls:[
-      {x:0,y:0,w:800,h:10},
-      {x:0,y:0,w:10,h:600},
-      {x:790,y:0,w:10,h:600},
-      {x:0,y:590,w:800,h:10}
-    ],
-    doors:[{x:0,y:250,w:20,h:100,to:"CONSERVATORY"}],
-    stairs:{x:10,y:540,w:50,h:50,to:"DINING ROOM"},
-    objects:[
-      {type:"rect",x:100,y:100,w:80,h:50,color:"#FF0000"},
-      {type:"rect",x:600,y:100,w:80,h:50,color:"#00FF00"},
-      {type:"rect",x:100,y:400,w:80,h:50,color:"#0000FF"},
-      {type:"rect",x:600,y:400,w:80,h:50,color:"#FFFF00"}
-    ]
-  },
-  "CONSERVATORY":{
-    floor:2,
-    weapons:[{name:"Rope",x:600,y:50,w:20,h:20}],
-    walls:[
-      {x:0,y:0,w:800,h:10},
-      {x:0,y:0,w:10,h:600},
-      {x:790,y:0,w:10,h:600},
-      {x:0,y:590,w:800,h:10}
-    ],
-    doors:[{x:780,y:250,w:20,h:100,to:"ART ROOM"}],
-    stairs:null,
-    objects:[
-      {type:"circle",x:100,y:100,radius:20,color:"#228B22"},
-      {type:"circle",x:300,y:150,radius:20,color:"#228B22"},
-      {type:"circle",x:500,y:100,radius:20,color:"#228B22"},
-      {type:"circle",x:200,y:300,radius:20,color:"#228B22"},
-      {type:"circle",x:600,y:200,radius:20,color:"#228B22"}
-    ]
-  }
+  "KITCHEN":{ floor:1, weapons:[{name:"Knife",x:50,y:50,w:20,h:20}],
+    walls:[{x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},{x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}],
+    doors:[{x:780,y:250,w:20,h:100,to:"BALLROOM"}], stairs:null },
+
+  "BALLROOM":{ floor:1, weapons:[{name:"Candlestick",x:300,y:100,w:20,h:20}],
+    walls:[{x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},{x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}],
+    doors:[{x:0,y:250,w:20,h:100,to:"KITCHEN"},{x:350,y:580,w:100,h:20,to:"DINING ROOM"}], stairs:null },
+
+  "DINING ROOM":{ floor:1, weapons:[{name:"Wrench",x:100,y:50,w:20,h:20}],
+    walls:[{x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},{x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}],
+    doors:[{x:350,y:0,w:100,h:20,to:"BALLROOM"}],
+    stairs:{x:740,y:540,w:50,h:50,to:"ART ROOM"} },
+
+  "ART ROOM":{ floor:2, weapons:[{name:"Lead Pipe",x:600,y:100,w:20,h:20}],
+    walls:[{x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},{x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}],
+    doors:[{x:0,y:250,w:20,h:100,to:"DINING ROOM"}],
+    stairs:{x:10,y:540,w:50,h:50,to:"DINING ROOM"} }
 };
 
-function spawnExtraWeapons(amount) {
-  const roomNames = Object.keys(ROOMS);
-  const weaponNames = [
-    "Dagger", "Hammer", "Axe", "Bat", "Sword",
-    "Spear", "Mace", "Club", "Crossbow"
-  ];
+/* ---------- MOVEMENT (BEST PRACTICE) ---------- */
+function movePlayer(dir) {
+  if (gameOver) return;
+  const px = player.x, py = player.y;
 
-  for (let i = 0; i < amount; i++) {
-    const roomName = roomNames[Math.floor(Math.random() * roomNames.length)];
-    const room = ROOMS[roomName];
+  if (dir === "left") player.x -= player.speed;
+  if (dir === "right") player.x += player.speed;
+  if (dir === "up") player.y -= player.speed;
+  if (dir === "down") player.y += player.speed;
 
-    room.weapons.push({
-      name: weaponNames[Math.floor(Math.random() * weaponNames.length)],
-      x: Math.random() * 700 + 40,
-      y: Math.random() * 500 + 40,
-      w: 20,
-      h: 20
-    });
-  }
+  handleCollisions(px, py);
+  updateHUD();
 }
 
-// ---------- COLLISIONS ----------
-function handleCollisions(prevX, prevY){
- const room = ROOMS[currentRoom];
- if (stairCooldown > 0) stairCooldown--;
- player.x = Math.max(10, Math.min(player.x, 790-player.w));
- player.y = Math.max(10, Math.min(player.y, 590-player.h));
- for(const w of room.walls){
-   if(player.x+player.w > w.x && player.x < w.x + w.w &&
-      player.y+player.h > w.y && player.y < w.y + w.h){
-      player.x = prevX;
-      player.y = prevY;
-   }
- }
- for(let i=room.weapons.length-1;i>=0;i--){
-   const w = room.weapons[i];
-   if(player.x < w.x + w.w && player.x + player.w > w.x &&
-      player.y < w.y + w.h && player.y + player.h > w.y){
-       collected.push(w.name);
-       room.weapons.splice(i,1);
-       score += 100;
-   }
- }
- for(const d of room.doors){
-   if(player.x < d.x + d.w && player.x + player.w > d.x &&
-      player.y < d.y + d.h && player.y + player.h > d.y){
+/* ---------- KEYBOARD ---------- */
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowLeft") movePlayer("left");
+  if (e.key === "ArrowRight") movePlayer("right");
+  if (e.key === "ArrowUp") movePlayer("up");
+  if (e.key === "ArrowDown") movePlayer("down");
+});
+
+/* ---------- TOUCH ---------- */
+document.querySelectorAll("#mobileControls button").forEach(btn => {
+  btn.addEventListener("touchstart", e => {
+    e.preventDefault();
+    movePlayer(btn.dataset.dir);
+  });
+});
+
+/* ---------- COLLISIONS ---------- */
+function handleCollisions(px, py) {
+  const room = ROOMS[currentRoom];
+  player.x = Math.max(10, Math.min(player.x, 790-player.w));
+  player.y = Math.max(10, Math.min(player.y, 590-player.h));
+
+  for (const w of room.walls) {
+    if (player.x+player.w>w.x && player.x<w.x+w.w &&
+        player.y+player.h>w.y && player.y<w.y+w.h) {
+      player.x = px; player.y = py;
+    }
+  }
+
+  for (let i=room.weapons.length-1;i>=0;i--) {
+    const w = room.weapons[i];
+    if (player.x<w.x+w.w && player.x+player.w>w.x &&
+        player.y<w.y+w.h && player.y+player.h>w.y) {
+      collected.push(w.name);
+      room.weapons.splice(i,1);
+      score += 100;
+    }
+  }
+
+  for (const d of room.doors) {
+    if (player.x<d.x+d.w && player.x+player.w>d.x &&
+        player.y<d.y+d.h && player.y+player.h>d.y) {
       currentRoom = d.to;
-      if(d.x === 0) player.x = 760;
-      else if(d.x >= 780) player.x = 20;
-      if(d.y === 0) player.y = 560;
-      else if(d.y >= 580) player.y = 20;
-   }
- }
- if (
-  room.stairs &&
-  stairCooldown === 0 &&
-  player.x < room.stairs.x + room.stairs.w &&
-  player.x + player.w > room.stairs.x &&
-  player.y < room.stairs.y + room.stairs.h &&
-  player.y + player.h > room.stairs.y
-  ) {
-    stairCooldown = 10; // ~⅓ second at 60fps
-
-    const targetRoom = room.stairs.to;
-    const fromFloor = room.floor;
-    const toFloor = ROOMS[targetRoom].floor;
-
-    currentRoom = targetRoom;
-
-    // Safe spawn positions
-    if (toFloor > fromFloor) {
-      // going UP
-      player.x = 60;
-    } else {
-      // going DOWN
-      player.y = 500;
+      player.x = 50; player.y = 50;
     }
   }
 }
 
-
-// ---------- UPDATE HUD ----------
-function updateHUD(){
- const room = ROOMS[currentRoom];
- roomInfo.textContent = "Room: " + currentRoom;
- floorInfo.textContent = "Floor: " + room.floor;
- scoreInfo.textContent = "Score: " + score;
- weaponsInfo.textContent = "Weapons: " + collected.length + "/" + requiredWeapons;
- livesInfo.textContent = "Lives: " + lives;
+/* ---------- HUD ---------- */
+function updateHUD() {
+  roomInfo.textContent = "Room: " + currentRoom;
+  floorInfo.textContent = "Floor: " + ROOMS[currentRoom].floor;
+  scoreInfo.textContent = "Score: " + score;
+  weaponsInfo.textContent = "Weapons: " + collected.length;
+  livesInfo.textContent = "Lives: " + lives;
 }
 
+/* ---------- DRAW ---------- */
+function draw() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const room = ROOMS[currentRoom];
 
-// ---------- DRAW ----------
-function draw(){
- if(gameOver) return;
- ctx.clearRect(0,0,canvas.width,canvas.height);
- const room = ROOMS[currentRoom];
+  ctx.fillStyle="#FFC8C8";
+  ctx.fillRect(0,0,800,600);
 
+  ctx.fillStyle="black";
+  room.walls.forEach(w=>ctx.fillRect(w.x,w.y,w.w,w.h));
 
- ctx.fillStyle="#FFC8C8";
- ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle="gold";
+  room.doors.forEach(d=>ctx.fillRect(d.x,d.y,d.w,d.h));
 
+  ctx.fillStyle="#8B0000";
+  room.weapons.forEach(w=>ctx.fillRect(w.x,w.y,w.w,w.h));
 
- ctx.fillStyle="#000";
- for(const w of room.walls) ctx.fillRect(w.x,w.y,w.w,w.h);
-
-
- ctx.fillStyle="#FFD700";
- for(const d of room.doors) ctx.fillRect(d.x,d.y,d.w,d.h);
-
-
- if(room.stairs){
-   ctx.fillStyle="#969696";
-   ctx.fillRect(room.stairs.x,room.stairs.y,room.stairs.w,room.stairs.h);
-   ctx.fillStyle="black";
-   ctx.fillText("STAIRS",room.stairs.x+5,room.stairs.y+30);
- }
-
-
- if(room.objects){
-   for(const obj of room.objects){
-     if(obj.type === "circle"){
-       ctx.fillStyle = obj.color || "gray";
-       ctx.beginPath();
-       ctx.arc(obj.x,obj.y,obj.radius,0,Math.PI*2);
-       ctx.fill();
-     } else if(obj.type==="rect"){
-       ctx.fillStyle = obj.color || "gray";
-       ctx.fillRect(obj.x,obj.y,obj.w,obj.h);
-     }
-   }
- }
-
-
- ctx.fillStyle="#8B0000";
- for(const w of room.weapons) ctx.fillRect(w.x,w.y,w.w,w.h);
-
-
- ctx.fillStyle="#3264FF";
- ctx.fillRect(player.x,player.y,player.w,player.h);
-
-
- // draw guards
- for(const g of guards){
-   if(g.room !== currentRoom) continue;
-   ctx.fillStyle = "red";
-   ctx.fillRect(g.x,g.y,g.w,g.h);
- }
-
-
- moveGuards();
-
-
- if(collected.length >= requiredWeapons){
-   ctx.fillStyle="white";
-   ctx.fillRect(0,0,canvas.width,canvas.height);
-   ctx.fillStyle="black";
-   ctx.font="30px sans-serif";
-   ctx.fillText("YOU WIN!",300,250);
-   ctx.fillText(`FINAL SCORE: ${score}`,250,300);
-   gameOver = true;
- }
-
-
- if(showMap) drawMap();
+  ctx.fillStyle="#3264FF";
+  ctx.fillRect(player.x,player.y,player.w,player.h);
 }
 
-
-// ---------- MAP ----------
-function drawMap(){
- mapCtx.clearRect(0,0,mapCanvas.width,mapCanvas.height);
- const roomW = mapCanvas.width/3;
- const roomH = mapCanvas.height/2;
- let i=0;
- for(const r in ROOMS){
-   const col = i%3;
-   const row = Math.floor(i/3);
-   const x = col*roomW;
-   const y = row*roomH;
-   const floor = ROOMS[r].floor;
-   mapCtx.fillStyle = floor===1?"#AAAAAA":"#87CEFA";
-   if(r===currentRoom) mapCtx.fillStyle = "#FFD700";
-   mapCtx.fillRect(x,y,roomW-5,roomH-5);
-   mapCtx.fillStyle="black";
-   mapCtx.font="12px sans-serif";
-   mapCtx.fillText(r,x+5,y+15);
-   mapCtx.fillText(`F${floor}`,x+5,y+30);
-   i++;
- }
-}
-
-
-// ---------- UPDATE LOOP ----------
-function update(){
-  if (vkyekoCooldown > 0) vkyekoCooldown--;
+/* ---------- LOOP ---------- */
+function loop() {
   draw();
-  requestAnimationFrame(update);
+  requestAnimationFrame(loop);
 }
 
-
-ctx.font="16px sans-serif";
-mapCtx.font="12px sans-serif";
-update();
 updateHUD();
+loop();
 
+/* ---------- BUTTONS ---------- */
+document.getElementById("mapButton").onclick = () => {
+  showMap = !showMap;
+  mapCanvas.style.display = showMap ? "block" : "none";
+};
 
-// ---------- BUTTON EVENTS ----------
-document.getElementById("mapButton").addEventListener("click",()=>{
- showMap=!showMap;
- mapCanvas.style.display=showMap?"block":"none";
-});
-
-
-const instructionButton = document.getElementById("instructionButton");
-const instructions = document.getElementById("instructions");
-
-
-instructionButton.addEventListener("click", () => {
- if (instructions.style.display === "none") instructions.style.display = "block";
- else instructions.style.display = "none";
-});
+document.getElementById("instructionButton").onclick = () => {
+  instructions.style.display =
+    instructions.style.display === "none" ? "block" : "none";
+};
 </script>
 </body>
 </html>
