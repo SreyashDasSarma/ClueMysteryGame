@@ -95,14 +95,13 @@ let stairCooldown = 0;
 let vkyekoCooldown = 0;
 
 const roomInfo = document.getElementById("roomInfo");
-const floorInfo = document.getElementById("floorInfo");
 const scoreInfo = document.getElementById("scoreInfo");
 const weaponsInfo = document.getElementById("weaponsInfo");
 const livesInfo = document.getElementById("livesInfo");
 
-const player = {x:50,y:50,w:25,h:25,speed:3};
+let player = {x:50,y:50,w:25,h:25,speed:3};
 if(isMobileDevice()){
-    player = {x:50,y:50,w:25,h:25,speed:5};
+    player.speed=5;
 }
 
 let score = 0;
