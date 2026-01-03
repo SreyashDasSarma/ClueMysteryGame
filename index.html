@@ -21,26 +21,21 @@ canvas { background-color:#b4b4b4; display:block; margin:5px; border:1px solid b
  border:1px solid #000;
  text-align:left;
 }
+
+/* Mobile arrow buttons */
 #buttonControls {
   position: fixed;
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 100;
-  display: none; /* hidden by default */
+  display: none; /* hidden by default, shown only on mobile */
 }
 
 #buttonControls button {
   font-size: 28px;
   padding: 15px 20px;
   margin: 5px;
-}
-
-/* Show controls only on phones/tablets */
-@media (max-width: 900px) {
-  #buttonControls {
-    display: block;
-  }
 }
 </style>
 </head>
@@ -59,7 +54,6 @@ canvas { background-color:#b4b4b4; display:block; margin:5px; border:1px solid b
  <canvas id="gameCanvas" width="800" height="600"></canvas>
  <canvas id="mapCanvas" width="300" height="600" style="display:none;"></canvas>
 </div>
-
 <div>
  <button id="mapButton">Toggle Map</button>
  <button id="instructionButton">Toggle Instructions</button>
@@ -75,19 +69,36 @@ canvas { background-color:#b4b4b4; display:block; margin:5px; border:1px solid b
 5. Check the map to view your location.
 </p>
 
+<!-- Mobile arrow controls -->
+<div id="buttonControls">
+  <div>
+    <button id="btnUp">⬆️</button>
+  </div>
+  <div>
+    <button id="btnLeft">⬅️</button>
+    <button id="btnDown">⬇️</button>
+    <button id="btnRight">➡️</button>
+  </div>
+</div>
+
 <script>
+document.addEventListener("DOMContentLoaded", ()=>{
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const mapCanvas = document.getElementById('mapCanvas');
 const mapCtx = mapCanvas.getContext('2d');
-let stairCooldown = 0;
-let vkyekoCooldown = 0;
 
 const roomInfo = document.getElementById("roomInfo");
 const floorInfo = document.getElementById("floorInfo");
 const scoreInfo = document.getElementById("scoreInfo");
 const weaponsInfo = document.getElementById("weaponsInfo");
 const livesInfo = document.getElementById("livesInfo");
+const cheatDisplay = document.getElementById('cheatDisplay');
+
+let stairCooldown = 0;
+let vkyekoCooldown = 0;
+let cheatBuffer = "";
 
 const player = {x:50,y:50,w:25,h:25,speed:5};
 let score = 0;
@@ -96,47 +107,18 @@ let currentRoom = "BALLROOM";
 let showMap = false;
 let lives = 3;
 let gameOver = false;
+let requiredWeapons = 6;
+let deathPenalty = 1;
 
+// For continuous movement
+const keysPressed = {up:false,down:false,left:false,right:false};
+
+// ---------- GUARDS ----------
 let guards = [
  {x:200,y:150,w:25,h:25,speed:2,dx:1,dy:0,room:"BALLROOM"},
  {x:500,y:400,w:25,h:25,speed:1.5,dx:0,dy:1,room:"DINING ROOM"}
 ];
 
-let requiredWeapons = 6;
-let deathPenalty = 1;
-
-// ---------- MOVEMENT HANDLING ----------
-let keysPressed = {up:false,down:false,left:false,right:false};
-
-document.addEventListener('keydown', e=>{
- if(gameOver) return;
- const key = e.key.toUpperCase();
- if(/^[A-Z]$/.test(key)) cheatBuffer+=key;
- if(e.key==="Backspace") cheatBuffer=cheatBuffer.slice(0,-1);
- cheatDisplay.textContent = "Type Here: " + cheatBuffer;
- for(const code in cheatCodes){
-   if(cheatBuffer.endsWith(code)){
-     cheatCodes[code]();
-     cheatBuffer="";
-     cheatDisplay.textContent = "Type Here: ";
-   }
- }
-
- // Arrow keys
- if(e.key==="ArrowLeft") keysPressed.left=true;
- if(e.key==="ArrowRight") keysPressed.right=true;
- if(e.key==="ArrowUp") keysPressed.up=true;
- if(e.key==="ArrowDown") keysPressed.down=true;
-});
-
-document.addEventListener('keyup', e=>{
- if(e.key==="ArrowLeft") keysPressed.left=false;
- if(e.key==="ArrowRight") keysPressed.right=false;
- if(e.key==="ArrowUp") keysPressed.up=false;
- if(e.key==="ArrowDown") keysPressed.down=false;
-});
-
-// ---------- GUARDS ----------
 function moveGuards(){
  for(const g of guards){
    if(g.room !== currentRoom) continue;
@@ -172,7 +154,10 @@ const ROOMS = {
     floor:1,
     weapons:[{name:"Knife",x:50,y:50,w:20,h:20}],
     walls:[
-      {x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},{x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}
+      {x:0,y:0,w:800,h:10},
+      {x:0,y:0,w:10,h:600},
+      {x:790,y:0,w:10,h:600},
+      {x:0,y:590,w:800,h:10}
     ],
     doors:[{x:780,y:250,w:20,h:100,to:"BALLROOM"}],
     stairs:null
@@ -181,7 +166,10 @@ const ROOMS = {
     floor:1,
     weapons:[{name:"Candlestick",x:300,y:100,w:20,h:20}],
     walls:[
-      {x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},{x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}
+      {x:0,y:0,w:800,h:10},
+      {x:0,y:0,w:10,h:600},
+      {x:790,y:0,w:10,h:600},
+      {x:0,y:590,w:800,h:10}
     ],
     doors:[
       {x:0,y:250,w:20,h:100,to:"KITCHEN"},
@@ -194,7 +182,10 @@ const ROOMS = {
     floor:1,
     weapons:[{name:"Pistol",x:200,y:100,w:20,h:20}],
     walls:[
-      {x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},{x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}
+      {x:0,y:0,w:800,h:10},
+      {x:0,y:0,w:10,h:600},
+      {x:790,y:0,w:10,h:600},
+      {x:0,y:590,w:800,h:10}
     ],
     doors:[
       {x:0,y:100,w:20,h:100,to:"BALLROOM"}
@@ -205,9 +196,14 @@ const ROOMS = {
     floor:1,
     weapons:[{name:"Wrench",x:100,y:50,w:20,h:20}],
     walls:[
-      {x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},{x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}
+      {x:0,y:0,w:800,h:10},
+      {x:0,y:0,w:10,h:600},
+      {x:790,y:0,w:10,h:600},
+      {x:0,y:590,w:800,h:10}
     ],
-    doors:[{x:350,y:0,w:100,h:20,to:"BALLROOM"}],
+    doors:[
+      {x:350,y:0,w:100,h:20,to:"BALLROOM"}
+    ],
     stairs:{x:740,y:540,w:50,h:50,to:"ART ROOM"},
     objects:[{type:"circle",x:400,y:300,radius:50,color:"#FFFF99"}]
   },
@@ -215,7 +211,10 @@ const ROOMS = {
     floor:2,
     weapons:[{name:"Lead Pipe",x:600,y:100,w:20,h:20}],
     walls:[
-      {x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},{x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}
+      {x:0,y:0,w:800,h:10},
+      {x:0,y:0,w:10,h:600},
+      {x:790,y:0,w:10,h:600},
+      {x:0,y:590,w:800,h:10}
     ],
     doors:[{x:0,y:250,w:20,h:100,to:"CONSERVATORY"}],
     stairs:{x:10,y:540,w:50,h:50,to:"DINING ROOM"},
@@ -230,7 +229,10 @@ const ROOMS = {
     floor:2,
     weapons:[{name:"Rope",x:600,y:50,w:20,h:20}],
     walls:[
-      {x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},{x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}
+      {x:0,y:0,w:800,h:10},
+      {x:0,y:0,w:10,h:600},
+      {x:790,y:0,w:10,h:600},
+      {x:0,y:590,w:800,h:10}
     ],
     doors:[{x:780,y:250,w:20,h:100,to:"ART ROOM"}],
     stairs:null,
@@ -243,6 +245,15 @@ const ROOMS = {
     ]
   }
 };
+
+function updateHUD(){
+ const room = ROOMS[currentRoom];
+ roomInfo.textContent = "Room: " + currentRoom;
+ floorInfo.textContent = "Floor: " + room.floor;
+ scoreInfo.textContent = "Score: " + score;
+ weaponsInfo.textContent = "Weapons: " + collected.length + "/" + requiredWeapons;
+ livesInfo.textContent = "Lives: " + lives;
+}
 
 // ---------- COLLISIONS ----------
 function handleCollisions(prevX, prevY){
@@ -285,20 +296,13 @@ function handleCollisions(prevX, prevY){
   player.y + player.h > room.stairs.y
   ) {
     stairCooldown = 10;
-    currentRoom = room.stairs.to;
-    if (ROOMS[currentRoom].floor > room.floor) player.x = 60;
+    const targetRoom = room.stairs.to;
+    const fromFloor = room.floor;
+    const toFloor = ROOMS[targetRoom].floor;
+    currentRoom = targetRoom;
+    if (toFloor > fromFloor) player.x = 60;
     else player.y = 500;
   }
-}
-
-// ---------- UPDATE HUD ----------
-function updateHUD(){
- const room = ROOMS[currentRoom];
- roomInfo.textContent = "Room: " + currentRoom;
- floorInfo.textContent = "Floor: " + room.floor;
- scoreInfo.textContent = "Score: " + score;
- weaponsInfo.textContent = "Weapons: " + collected.length + "/" + requiredWeapons;
- livesInfo.textContent = "Lives: " + lives;
 }
 
 // ---------- DRAW ----------
@@ -387,71 +391,79 @@ function drawMap(){
  }
 }
 
-// ---------- BUTTON EVENTS ----------
-document.getElementById("mapButton").addEventListener("click",()=>{
- showMap=!showMap;
- mapCanvas.style.display=showMap?"block":"none";
-});
-
+// ---------- BUTTONS & MOBILE ----------
+const mapButton = document.getElementById("mapButton");
 const instructionButton = document.getElementById("instructionButton");
 const instructions = document.getElementById("instructions");
-instructionButton.addEventListener("click", () => {
- instructions.style.display = instructions.style.display==="none"?"block":"none";
-});
 
-// ---------- BUTTON MOVE HANDLING ----------
-function moveFromButton(direction, isPressed){
- keysPressed[direction] = isPressed;
+mapButton.addEventListener("click",()=>{ showMap=!showMap; mapCanvas.style.display=showMap?"block":"none"; });
+instructionButton.addEventListener("click",()=>{ instructions.style.display=(instructions.style.display==="none")?"block":"none"; });
+
+// show mobile buttons only on touch devices
+if('ontouchstart' in window || navigator.maxTouchPoints > 0){
+  document.getElementById("buttonControls").style.display = "block";
 }
 
-const btns = {
- up: document.querySelector("#buttonControls button:nth-child(1)"),
- left: document.querySelector("#buttonControls button:nth-child(2)"),
- down: document.querySelector("#buttonControls button:nth-child(3)"),
- right: document.querySelector("#buttonControls button:nth-child(4)")
-};
+// ---------- MOVE HANDLING ----------
+function updatePlayerFromKeys(){
+  const prevX = player.x;
+  const prevY = player.y;
 
-btns.up.addEventListener("touchstart",()=>moveFromButton("up",true));
-btns.up.addEventListener("touchend",()=>moveFromButton("up",false));
-btns.down.addEventListener("touchstart",()=>moveFromButton("down",true));
-btns.down.addEventListener("touchend",()=>moveFromButton("down",false));
-btns.left.addEventListener("touchstart",()=>moveFromButton("left",true));
-btns.left.addEventListener("touchend",()=>moveFromButton("left",false));
-btns.right.addEventListener("touchstart",()=>moveFromButton("right",true));
-btns.right.addEventListener("touchend",()=>moveFromButton("right",false));
+  if(keysPressed.left) player.x -= player.speed;
+  if(keysPressed.right) player.x += player.speed;
+  if(keysPressed.up) player.y -= player.speed;
+  if(keysPressed.down) player.y += player.speed;
+
+  handleCollisions(prevX, prevY);
+  updateHUD();
+}
+
+// keyboard
+document.addEventListener('keydown', e=>{
+  if(gameOver) return;
+  const key = e.key.toUpperCase();
+  if(/^[A-Z]$/.test(key)) cheatBuffer+=key;
+  if(e.key==="Backspace") cheatBuffer=cheatBuffer.slice(0,-1);
+  cheatDisplay.textContent = "Type Here: " + cheatBuffer;
+
+  if(key==="ARROWLEFT") keysPressed.left = true;
+  if(key==="ARROWRIGHT") keysPressed.right = true;
+  if(key==="ARROWUP") keysPressed.up = true;
+  if(key==="ARROWDOWN") keysPressed.down = true;
+});
+
+// keyup
+document.addEventListener('keyup', e=>{
+  if(e.key==="ArrowLeft") keysPressed.left=false;
+  if(e.key==="ArrowRight") keysPressed.right=false;
+  if(e.key==="ArrowUp") keysPressed.up=false;
+  if(e.key==="ArrowDown") keysPressed.down=false;
+});
+
+// mobile buttons
+function moveFromButton(direction,isPressed){ keysPressed[direction]=isPressed; }
+
+document.getElementById("btnUp").addEventListener("touchstart",()=>moveFromButton("up",true));
+document.getElementById("btnUp").addEventListener("touchend",()=>moveFromButton("up",false));
+document.getElementById("btnDown").addEventListener("touchstart",()=>moveFromButton("down",true));
+document.getElementById("btnDown").addEventListener("touchend",()=>moveFromButton("down",false));
+document.getElementById("btnLeft").addEventListener("touchstart",()=>moveFromButton("left",true));
+document.getElementById("btnLeft").addEventListener("touchend",()=>moveFromButton("left",false));
+document.getElementById("btnRight").addEventListener("touchstart",()=>moveFromButton("right",true));
+document.getElementById("btnRight").addEventListener("touchend",()=>moveFromButton("right",false));
 
 // ---------- GAME LOOP ----------
 function gameLoop(){
- if(!gameOver){
-   const prevX = player.x;
-   const prevY = player.y;
-
-   if(keysPressed.left) player.x -= player.speed;
-   if(keysPressed.right) player.x += player.speed;
-   if(keysPressed.up) player.y -= player.speed;
-   if(keysPressed.down) player.y += player.speed;
-
-   handleCollisions(prevX, prevY);
-   updateHUD();
-   draw();
- }
-
- if(vkyekoCooldown>0) vkyekoCooldown--;
- requestAnimationFrame(gameLoop);
+  if(gameOver) return;
+  updatePlayerFromKeys();
+  draw();
+  requestAnimationFrame(gameLoop);
 }
 
-ctx.font="16px sans-serif";
-mapCtx.font="12px sans-serif";
 updateHUD();
 gameLoop();
-</script>
 
-<!-- MOBILE BUTTON CONTROLS -->
-<div id="buttonControls">
- <button>&uarr;</button>
- <button>&larr;</button>
- <button>&darr;</button>
- <button>&rarr;</button>
-</div>
+}); // DOMContentLoaded
+</script>
 </body>
 </html>
