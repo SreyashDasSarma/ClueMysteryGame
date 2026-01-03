@@ -10,6 +10,10 @@ body { text-align:center; font-family:sans-serif; position: relative; }
 #gameContainer { display:flex; justify-content:center; align-items:flex-start; }
 canvas { background-color:#b4b4b4; display:block; margin:5px; border:1px solid black; }
 #cheatDisplay { font-size:16px; margin-top:10px; }
+<div>
+  <input type="text" id="cheatInput" placeholder="Enter cheat code here" style="font-size:16px; padding:5px; width:200px;">
+  <button id="cheatButton" style="font-size:16px; padding:5px;">Activate Cheat</button>
+</div>
 #mapButton, #instructionButton { margin:10px; padding:5px 10px; font-size:16px; }
 #instructions {
  display:none;
@@ -160,7 +164,29 @@ const cheatCodes = {
 
 let cheatBuffer = "";
 const cheatDisplay = document.getElementById('cheatDisplay');
+const cheatInput = document.getElementById('cheatInput');
+const cheatButton = document.getElementById('cheatButton');
 
+function activateCheat(code){
+  code = code.toUpperCase();
+  if(cheatCodes[code]){
+    cheatCodes[code]();
+    cheatInput.value = "";
+    cheatDisplay.textContent = "Cheat activated: " + code;
+  } else {
+    cheatDisplay.textContent = "Invalid cheat: " + code;
+  }
+}
+
+// Activate on button click
+cheatButton.addEventListener('click', ()=>{
+  activateCheat(cheatInput.value);
+});
+
+// Activate on Enter key press
+cheatInput.addEventListener('keydown', e=>{
+  if(e.key === "Enter") activateCheat(cheatInput.value);
+});
 // --- Cheat typing only ---
 document.addEventListener('keydown', e => {
   if(gameOver) return;
