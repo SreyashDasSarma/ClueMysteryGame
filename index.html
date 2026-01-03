@@ -370,12 +370,15 @@ if(isMobileDevice()){
  handleTouchMovement();
 }
 </script>
- <!-- Mobile arrow controls -->
-<div id="buttonControls" style="display:none;">
-  <button data-dir="up">↑</button><br>
-  <button data-dir="left">←</button>
-  <button data-dir="down">↓</button>
-  <button data-dir="right">→</button>
+<div id="buttonControls" style="display:none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 100;">
+  <div style="text-align:center;">
+    <button data-dir="up">↑</button>
+  </div>
+  <div style="display:flex; justify-content:center;">
+    <button data-dir="left">←</button>
+    <button data-dir="down" style="margin: 0 10px;">↓</button>
+    <button data-dir="right">→</button>
+  </div>
 </div>
 </body>
 </html>
