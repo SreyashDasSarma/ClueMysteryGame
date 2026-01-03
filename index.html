@@ -5,51 +5,32 @@
 <title>Clue: The Floors of Mystery</title>
 
 <style>
-body { text-align:center; font-family:sans-serif; position: relative; }
+body {
+  text-align: center;
+  font-family: sans-serif;
+  position: relative;
+}
 
-#hud { margin-bottom:10px; font-size:16px; }
-#hud p { margin:2px; }
+#hud p { margin: 2px; }
 
 #gameContainer {
-  display:flex;
-  justify-content:center;
-  align-items:flex-start;
+  display: flex;
+  justify-content: center;
 }
 
 canvas {
-  background-color:#b4b4b4;
-  display:block;
-  margin:5px;
-  border:1px solid black;
+  background: #b4b4b4;
+  border: 1px solid black;
+  margin: 5px;
 }
 
-#cheatDisplay { font-size:16px; margin-top:10px; }
-
-#mapButton, #instructionButton {
-  margin:10px;
-  padding:5px 10px;
-  font-size:16px;
-}
-
-#instructions {
-  display:none;
-  position:absolute;
-  left:10px;
-  top:100px;
-  background-color:#f0f0f0;
-  padding:10px;
-  border:1px solid #000;
-  text-align:left;
-}
-
-/* ---------- MOBILE CONTROLS ---------- */
+/* MOBILE BUTTONS */
 #mobileControls {
   position: fixed;
   bottom: 15px;
   left: 50%;
   transform: translateX(-50%);
   display: none;
-  z-index: 10;
 }
 
 #mobileControls button {
@@ -58,7 +39,7 @@ canvas {
   margin: 5px;
 }
 
-/* Show only on touch devices */
+/* show buttons on touch devices */
 @media (pointer: coarse) {
   #mobileControls {
     display: block;
@@ -71,92 +52,66 @@ canvas {
 <h2>Clue: The Floors of Mystery</h2>
 
 <div id="hud">
-  <p id="roomInfo">Room:</p>
-  <p id="floorInfo">Floor:</p>
-  <p id="scoreInfo">Score:</p>
-  <p id="weaponsInfo">Weapons:</p>
-  <p id="livesInfo">Lives:</p>
+  <p id="roomInfo"></p>
+  <p id="floorInfo"></p>
+  <p id="scoreInfo"></p>
+  <p id="weaponsInfo"></p>
 </div>
 
 <div id="gameContainer">
   <canvas id="gameCanvas" width="800" height="600"></canvas>
-  <canvas id="mapCanvas" width="300" height="600" style="display:none;"></canvas>
 </div>
 
-<div>
-  <button id="mapButton">Toggle Map</button>
-  <button id="instructionButton">Toggle Instructions</button>
-</div>
-
-<div id="cheatDisplay">Cheat Code:</div>
-
-<p id="instructions">
-1. Use arrow keys or touch controls to move.<br>
-2. Collect all weapons.<br>
-3. Avoid guards!<br>
-4. You have 3 lives.<br>
-5. Use the map to navigate.
-</p>
-
-<!-- MOBILE BUTTONS -->
+<!-- BUTTON CONTROLS -->
 <div id="mobileControls">
-  <button data-dir="up">⬆️</button>
-  <div>
-    <button data-dir="left">⬅️</button>
-    <button data-dir="down">⬇️</button>
-    <button data-dir="right">➡️</button>
-  </div>
+  <button onclick="movePlayer('up')">⬆️</button><br>
+  <button onclick="movePlayer('left')">⬅️</button>
+  <button onclick="movePlayer('down')">⬇️</button>
+  <button onclick="movePlayer('right')">➡️</button>
 </div>
 
 <script>
-/* ---------- CANVAS ---------- */
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-const mapCanvas = document.getElementById("mapCanvas");
-const mapCtx = mapCanvas.getContext("2d");
 
-/* ---------- HUD ---------- */
 const roomInfo = document.getElementById("roomInfo");
 const floorInfo = document.getElementById("floorInfo");
 const scoreInfo = document.getElementById("scoreInfo");
 const weaponsInfo = document.getElementById("weaponsInfo");
-const livesInfo = document.getElementById("livesInfo");
 
-/* ---------- GAME STATE ---------- */
 const player = { x:50, y:50, w:25, h:25, speed:5 };
 let score = 0;
 let collected = [];
 let currentRoom = "BALLROOM";
-let showMap = false;
-let lives = 3;
-let gameOver = false;
-let stairCooldown = 0;
 
-/* ---------- ROOMS ---------- */
 const ROOMS = {
-  "KITCHEN":{ floor:1, weapons:[{name:"Knife",x:50,y:50,w:20,h:20}],
-    walls:[{x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},{x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}],
-    doors:[{x:780,y:250,w:20,h:100,to:"BALLROOM"}], stairs:null },
+  "KITCHEN": {
+    floor:1,
+    weapons:[{x:50,y:50,w:20,h:20}],
+    walls:[
+      {x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},
+      {x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}
+    ],
+    doors:[{x:780,y:250,w:20,h:100,to:"BALLROOM"}]
+  },
 
-  "BALLROOM":{ floor:1, weapons:[{name:"Candlestick",x:300,y:100,w:20,h:20}],
-    walls:[{x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},{x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}],
-    doors:[{x:0,y:250,w:20,h:100,to:"KITCHEN"},{x:350,y:580,w:100,h:20,to:"DINING ROOM"}], stairs:null },
-
-  "DINING ROOM":{ floor:1, weapons:[{name:"Wrench",x:100,y:50,w:20,h:20}],
-    walls:[{x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},{x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}],
-    doors:[{x:350,y:0,w:100,h:20,to:"BALLROOM"}],
-    stairs:{x:740,y:540,w:50,h:50,to:"ART ROOM"} },
-
-  "ART ROOM":{ floor:2, weapons:[{name:"Lead Pipe",x:600,y:100,w:20,h:20}],
-    walls:[{x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},{x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}],
-    doors:[{x:0,y:250,w:20,h:100,to:"DINING ROOM"}],
-    stairs:{x:10,y:540,w:50,h:50,to:"DINING ROOM"} }
+  "BALLROOM": {
+    floor:1,
+    weapons:[{x:300,y:100,w:20,h:20}],
+    walls:[
+      {x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},
+      {x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}
+    ],
+    doors:[
+      {x:0,y:250,w:20,h:100,to:"KITCHEN"}
+    ]
+  }
 };
 
-/* ---------- MOVEMENT (BEST PRACTICE) ---------- */
+/* ---------- MOVEMENT ---------- */
 function movePlayer(dir) {
-  if (gameOver) return;
-  const px = player.x, py = player.y;
+  const px = player.x;
+  const py = player.y;
 
   if (dir === "left") player.x -= player.speed;
   if (dir === "right") player.x += player.speed;
@@ -175,32 +130,26 @@ document.addEventListener("keydown", e => {
   if (e.key === "ArrowDown") movePlayer("down");
 });
 
-/* ---------- TOUCH ---------- */
-document.querySelectorAll("#mobileControls button").forEach(btn => {
-  btn.addEventListener("touchstart", e => {
-    e.preventDefault();
-    movePlayer(btn.dataset.dir);
-  });
-});
-
 /* ---------- COLLISIONS ---------- */
 function handleCollisions(px, py) {
   const room = ROOMS[currentRoom];
+
   player.x = Math.max(10, Math.min(player.x, 790-player.w));
   player.y = Math.max(10, Math.min(player.y, 590-player.h));
 
   for (const w of room.walls) {
     if (player.x+player.w>w.x && player.x<w.x+w.w &&
         player.y+player.h>w.y && player.y<w.y+w.h) {
-      player.x = px; player.y = py;
+      player.x = px;
+      player.y = py;
     }
   }
 
-  for (let i=room.weapons.length-1;i>=0;i--) {
+  for (let i = room.weapons.length - 1; i >= 0; i--) {
     const w = room.weapons[i];
     if (player.x<w.x+w.w && player.x+player.w>w.x &&
         player.y<w.y+w.h && player.y+player.h>w.y) {
-      collected.push(w.name);
+      collected.push("Weapon");
       room.weapons.splice(i,1);
       score += 100;
     }
@@ -210,7 +159,8 @@ function handleCollisions(px, py) {
     if (player.x<d.x+d.w && player.x+player.w>d.x &&
         player.y<d.y+d.h && player.y+player.h>d.y) {
       currentRoom = d.to;
-      player.x = 50; player.y = 50;
+      player.x = 50;
+      player.y = 50;
     }
   }
 }
@@ -221,27 +171,26 @@ function updateHUD() {
   floorInfo.textContent = "Floor: " + ROOMS[currentRoom].floor;
   scoreInfo.textContent = "Score: " + score;
   weaponsInfo.textContent = "Weapons: " + collected.length;
-  livesInfo.textContent = "Lives: " + lives;
 }
 
 /* ---------- DRAW ---------- */
 function draw() {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.clearRect(0,0,800,600);
   const room = ROOMS[currentRoom];
 
-  ctx.fillStyle="#FFC8C8";
+  ctx.fillStyle = "#FFC8C8";
   ctx.fillRect(0,0,800,600);
 
-  ctx.fillStyle="black";
-  room.walls.forEach(w=>ctx.fillRect(w.x,w.y,w.w,w.h));
+  ctx.fillStyle = "black";
+  room.walls.forEach(w => ctx.fillRect(w.x,w.y,w.w,w.h));
 
-  ctx.fillStyle="gold";
-  room.doors.forEach(d=>ctx.fillRect(d.x,d.y,d.w,d.h));
+  ctx.fillStyle = "gold";
+  room.doors.forEach(d => ctx.fillRect(d.x,d.y,d.w,d.h));
 
-  ctx.fillStyle="#8B0000";
-  room.weapons.forEach(w=>ctx.fillRect(w.x,w.y,w.w,w.h));
+  ctx.fillStyle = "darkred";
+  room.weapons.forEach(w => ctx.fillRect(w.x,w.y,w.w,w.h));
 
-  ctx.fillStyle="#3264FF";
+  ctx.fillStyle = "blue";
   ctx.fillRect(player.x,player.y,player.w,player.h);
 }
 
@@ -253,17 +202,6 @@ function loop() {
 
 updateHUD();
 loop();
-
-/* ---------- BUTTONS ---------- */
-document.getElementById("mapButton").onclick = () => {
-  showMap = !showMap;
-  mapCanvas.style.display = showMap ? "block" : "none";
-};
-
-document.getElementById("instructionButton").onclick = () => {
-  instructions.style.display =
-    instructions.style.display === "none" ? "block" : "none";
-};
 </script>
 </body>
 </html>
