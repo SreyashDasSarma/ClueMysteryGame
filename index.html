@@ -528,15 +528,27 @@
 
     document.getElementById("mapButton").addEventListener("click", () => {
         showMap = !showMap;
-        mapCanvas.style.display = showMap ? "block" : "none";
-
+        mapCanvas.style.display = showMap ? "block" : "none"; // Show/hide map
+    
+        // Dynamically change the layout when map is toggled
         const container = document.getElementById("gameContainer");
-
+    
+        // Mobile: stack vertically, Desktop: side by side
         if (showMap) {
-            container.style.flexDirection = isMobileDevice() ? "column" : "row";
-            drawMap();
+            if (isMobileDevice()) {
+                container.style.flexDirection = "column";  // Stack vertically on mobile
+            } else {
+                container.style.flexDirection = "row";     // Side by side on desktop
+            }
+            drawMap(); // Optional: Redraw the map when toggled
+        } else {
+            // Reset to desktop layout (row) when hiding the map
+            if (!isMobileDevice()) {
+                container.style.flexDirection = "row";
+            }
         }
     });
+
 
     document.getElementById("instructionButton").addEventListener("click", ()=>{
         const instr=document.getElementById("instructions");
