@@ -151,8 +151,8 @@
     let lives = 3;
     let gameOver = false;
     let guards = [
-        {x:200,y:150,w:25,h:25,speed:2,dx:1,dy:0,room:"BALLROOM"},
-        {x:500,y:400,w:25,h:25,speed:1.5,dx:0,dy:1,room:"DINING ROOM"}
+        {x:200,y:150,w:25,h:25,speed:1,dx:1,dy:0,room:"BALLROOM"},
+        {x:500,y:400,w:25,h:25,speed:1,dx:0,dy:1,room:"DINING ROOM"}
     ];
     let requiredWeapons = 6;
     let deathPenalty = 1;
@@ -370,7 +370,9 @@
             ]
         }
     };
+    const originalWeapons = {}; // Store original weapons
 
+    backupOriginalWeapons();
     // ---------- HUD ----------
     function updateHUD(){
         roomInfo.textContent = "Room: "+currentRoom;
@@ -486,28 +488,6 @@
         }
     }
 
-    function moveGuards() {
-        for (const g of guards) {
-            if (g.room !== currentRoom) continue;
-            g.x += g.dx * g.speed; g.y += g.dy * g.speed;
-            g.x = Math.max(10, Math.min(g.x, 790 - g.w)); g.y = Math.max(10, Math.min(g.y, 590 - g.h));
-            if (Math.random() < 0.01) { g.dx = Math.floor(Math.random() * 3) - 1; g.dy = Math.floor(Math.random() * 3) - 1; }
-            if (player.x < g.x + g.w && player.x + player.w > g.x && player.y < g.y + g.h && player.y + player.h > g.y) {
-                lives -= deathPenalty;
-                updateHUD();
-                if (lives <= 0) {
-                    gameOver = true;
-                    alert("Game Over! Resetting the game...");
-                    resetGame();  // Reset the game here when lives reach 0
-                } else {
-                    player.x = 50;
-                    player.y = 50;
-                }
-            }
-        }
-    }
-
-
     function draw(){
             if(gameOver) return;
             ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -563,47 +543,119 @@
             if (showMap) requestAnimationFrame(drawMap);
         }
 
+    function backupOriginalWeapons() {
+        for (const roomKey in ROOMS) {
+            const room = ROOMS[roomKey];
+            // Create a backup of the original weapon objects for each room
+            originalWeapons[roomKey] = room.weapons.map(weapon => ({...weapon})); // Deep copy weapons
+        }
+    }
+    // Stop the game loop immediately
     function resetGame() {
-        // Reset player position and other game state variables
+        // Cancel any active game loop (ensure it stops the frame updates)
+        if (gameLoopId !== null) {
+            cancelAnimationFrame(gameLoopId);  // Stop the current game loop
+            gameLoopId = null;  // Clear the reference to the animation frame ID
+        }
+
+        // Reset the game state
         player = {x: 50, y: 50, w: 25, h: 25, speed: 3};
         score = 0;
-        collected = [];
+        collected = [];  // Reset collected weapons
         currentRoom = "BALLROOM";
         lives = 3;
         gameOver = false;
 
-        // Reset guards if necessary
+        // Reset guards state (position, speed, etc.)
         guards = [
-            {x: 200, y: 150, w: 25, h: 25, speed: 2, dx: 1, dy: 0, room: "BALLROOM"},
-            {x: 500, y: 400, w: 25, h: 25, speed: 1.5, dx: 0, dy: 1, room: "DINING ROOM"}
+            {x: 200, y: 150, w: 25, h: 25, speed: 1, dx: 1, dy: 0, room: "BALLROOM"},
+            {x: 500, y: 400, w: 25, h: 25, speed: 1, dx: 0, dy: 1, room: "DINING ROOM"}
         ];
+
+        // Restore original weapon positions
+        for (const roomKey in ROOMS) {
+            const room = ROOMS[roomKey];
+            room.weapons = [...originalWeapons[roomKey]];  // Restore the original weapons
+        }
 
         // Reset the HUD
         updateHUD();
 
+        // Clear key states and stop any pending actions
         for (let key in keysPressed) {
             keysPressed[key] = false;
         }
-        if (gameLoopId !== null) {
-            cancelAnimationFrame(gameLoopId);  // Cancel the previous game loop
+
+        // Ensure the guards' positions and state are reset properly
+        for (const g of guards) {
+            g.dx = 1;  // Reset guard directions
+            g.dy = 0;  // Reset guard directions
+            g.x = Math.random() * 700 + 50;  // Randomize their spawn positions
+            g.y = Math.random() * 500 + 50;
         }
-        gameLoopId = requestAnimationFrame(gameLoop);  // Start new game loop
+
+        // Reinitialize the game loop after the reset
+        startGameLoop();
     }
 
-
+    // Game loop to handle the game state updates
+    function startGameLoop() {
+        gameLoopId = requestAnimationFrame(gameLoop);  // Start a fresh game loop
+    }
 
     function gameLoop() {
         if (gameOver) {
-            if (gameLoopId !== null) {
-                cancelAnimationFrame(gameLoopId);  // Stop the game loop when game is over
-                gameLoopId = null;  // Reset the loop ID
-            }
-            return;  // Prevent any further game logic from executing
+            // Stop the game loop immediately if game is over
+            cancelAnimationFrame(gameLoopId);
+            gameLoopId = null;
+            return; // Prevent the loop from continuing
         }
+
+        // Update the guards and their movements
         moveGuards();
+
+        // Handle player collisions and other logic
         handleCollisions(player.x, player.y);
-        requestAnimationFrame(gameLoop);  // Continue the loop
+
+        // Request the next frame to keep the loop running
+        gameLoopId = requestAnimationFrame(gameLoop);
     }
+
+    function moveGuards() {
+        for (const g of guards) {
+            if (g.room !== currentRoom) continue;  // Skip guards not in the current room
+
+            // Move the guard by their direction and speed
+            g.x += g.dx * g.speed;
+            g.y += g.dy * g.speed;
+
+            // Keep guards within room bounds
+            g.x = Math.max(10, Math.min(g.x, 790 - g.w));
+            g.y = Math.max(10, Math.min(g.y, 590 - g.h));
+
+            // Randomize their direction slightly every now and then
+            if (Math.random() < 0.01) {
+                g.dx = Math.floor(Math.random() * 3) - 1;  // Randomize dx (-1, 0, 1)
+                g.dy = Math.floor(Math.random() * 3) - 1;  // Randomize dy (-1, 0, 1)
+            }
+
+            // Check for collision with the player
+            if (player.x < g.x + g.w && player.x + player.w > g.x && player.y < g.y + g.h && player.y + player.h > g.y) {
+                // Player hit by guard
+                lives -= deathPenalty;
+                updateHUD();
+                if (lives <= 0) {
+                    gameOver = true;
+                    alert("Game Over! Resetting the game...");
+                    resetGame();  // Reset the game if lives hit 0
+                } else {
+                    player.x = 50;  // Reset player position
+                    player.y = 50;
+                }
+            }
+        }
+    }
+
 
 
     draw();
