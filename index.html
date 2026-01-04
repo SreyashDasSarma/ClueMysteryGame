@@ -5,27 +5,28 @@
     <title>Clue: The Floors of Mystery</title>
     <style>
         body { text-align:center; font-family:sans-serif; position: relative; }
-    
+
         #hud { margin-bottom:10px; font-size:16px; }
         #hud p { margin:2px; }
-    
+
         #gameContainer {
             display: flex;
             justify-content: center;
-            align-items: flex-start;
-            flex-direction: row; /* Default direction for desktop */
+            align-items: center;
+            gap: 10px;
         }
-    
+
+
         canvas {
             background-color:#b4b4b4;
             display:block;
             margin:5px;
             border:1px solid black;
         }
-    
+
         #cheatDisplay { font-size:16px; margin-top:10px; }
         #mapButton, #instructionButton { margin:10px; padding:5px 10px; font-size:16px; }
-    
+
         #instructions {
             display:none;
             position:absolute;
@@ -36,7 +37,7 @@
             border:1px solid #000;
             text-align:left;
         }
-    
+
         #buttonControls {
             position: fixed;
             bottom: 20px;
@@ -45,22 +46,22 @@
             z-index: 100;
             display:none;
         }
-    
+
         #buttonControls button {
             font-size: 40px;
             padding: 20px 25px;
             margin: 5px;
             border-radius: 8px;
         }
-    
+
         /* Cheat input styling */
         #cheatContainer {
             margin-top: 10px;
         }
-    
+
         #cheatInput { font-size:16px; padding:4px; width:150px; }
         #cheatButton { font-size:16px; padding:4px 8px; }
-    
+
         /* Mobile-specific layout */
         @media (max-width: 768px) {
             #gameContainer {
@@ -72,7 +73,7 @@
                 margin-top:10px;
             }
         }
-    
+
         /* Desktop-specific layout */
         @media (min-width: 769px) {
             #gameContainer {
@@ -525,11 +526,18 @@
     draw();
     gameLoop();
 
-    document.getElementById("mapButton").addEventListener("click", ()=>{
-        showMap=!showMap;
-        mapCanvas.style.display=showMap?"block":"none";
-        if(showMap) drawMap();
+    document.getElementById("mapButton").addEventListener("click", () => {
+        showMap = !showMap;
+        mapCanvas.style.display = showMap ? "block" : "none";
+
+        const container = document.getElementById("gameContainer");
+
+        if (showMap) {
+            container.style.flexDirection = isMobileDevice() ? "column" : "row";
+            drawMap();
+        }
     });
+
     document.getElementById("instructionButton").addEventListener("click", ()=>{
         const instr=document.getElementById("instructions");
         instr.style.display=(instr.style.display==="none")?"block":"none";
