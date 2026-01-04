@@ -411,7 +411,12 @@
             for(const d of room.doors){
                 if(player.x+player.w>d.x && player.x<d.x+d.w && player.y+player.h>d.y && player.y<d.y+d.h){
                     currentRoom=d.to;
-                    player.x=800-player.x;
+                    if (player.x<30 ||player.x>750){
+                        player.x=800-player.x;
+                    }
+                    else{
+                        player.y=600-player.y;
+                    }
                     doorCooldown=10;
                     break;
                 }
