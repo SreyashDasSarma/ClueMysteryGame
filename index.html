@@ -339,7 +339,7 @@
         ctx.fillStyle="#FFD700"; for(const d of room.doors) ctx.fillRect(d.x,d.y,d.w,d.h);
         if(room.stairs){ ctx.fillStyle="#969696"; ctx.fillRect(room.stairs.x,room.stairs.y,room.stairs.w,room.stairs.h); }
         if(room.objects){ for(const obj of room.objects){ if(obj.type==="circle"){ ctx.fillStyle=obj.color; ctx.beginPath(); ctx.arc(obj.x,obj.y,obj.radius,0,2*Math.PI); ctx.fill(); } else if(obj.type==="rect"){ ctx.fillStyle=obj.color; ctx.fillRect(obj.x,obj.y,obj.w,obj.h); } } }
-        ctx.fillStyle="#8B0000"; for(const w of room.weapons) ctx.fillRect(w.x,w.y,w.w,w.h); // dark red
+        ctx.fillStyle="##008000"; for(const w of room.weapons) ctx.fillRect(w.x,w.y,w.w,w.h); // green
         ctx.fillStyle="#3264FF"; ctx.fillRect(player.x,player.y,player.w,player.h);
         for(const g of guards){ if(g.room===currentRoom){ ctx.fillStyle="red"; ctx.fillRect(g.x,g.y,g.w,g.h); } }
         requestAnimationFrame(draw);
