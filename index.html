@@ -207,12 +207,122 @@
 
     // ---------- Rooms ----------
     const ROOMS = {
-    "KITCHEN":{floor:1,weapons:[{name:"Knife",x:50,y:50,w:20,h:20}],walls:[{x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},{x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}],doors:[{x:789,y:250,w:11,h:100,to:"BALLROOM"}],stairs:null},
-    "BALLROOM":{floor:1,weapons:[{name:"Candlestick",x:300,y:100,w:20,h:20}],walls:[{x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},{x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}],doors:[{x:0,y:250,w:11,h:100,to:"KITCHEN"},{x:350,y:589,w:100,h:11,to:"DINING ROOM"},{x:789,y:100,w:11,h:100,to:"HALL"}],stairs:null},
-    "HALL":{floor:1,weapons:[{name:"Pistol",x:200,y:100,w:20,h:20}],walls:[{x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},{x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}],doors:[{x:0,y:100,w:11,h:100,to:"BALLROOM"}],stairs:null},
-    "DINING ROOM":{floor:1,weapons:[{name:"Wrench",x:100,y:50,w:20,h:20}],walls:[{x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},{x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}],doors:[{x:350,y:0,w:100,h:11,to:"BALLROOM"}],stairs:{x:740,y:540,w:50,h:50,to:"ART ROOM"},objects:[{type:"circle",x:400,y:300,radius:50,color:"#FFFF99"}]},
-    "ART ROOM":{floor:2,weapons:[{name:"Lead Pipe",x:600,y:100,w:20,h:20}],walls:[{x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},{x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}],doors:[{x:0,y:250,w:11,h:100,to:"CONSERVATORY"}],stairs:{x:10,y:540,w:50,h:50,to:"DINING ROOM"},objects:[{type:"rect",x:100,y:100,w:80,h:50,color:"#FF0000"},{type:"rect",x:600,y:100,w:80,h:50,color:"#00FF00"},{type:"rect",x:100,y:400,w:80,h:50,color:"#0000FF"},{type:"rect",x:600,y:400,w:80,h:50,color:"#FFFF00"}]},
-    "CONSERVATORY":{floor:2,weapons:[{name:"Rope",x:600,y:50,w:20,h:20}],walls:[{x:0,y:0,w:800,h:10},{x:0,y:0,w:10,h:600},{x:790,y:0,w:10,h:600},{x:0,y:590,w:800,h:10}],doors:[{x:789,y:250,w:11,h:100,to:"ART ROOM"}],stairs:null,objects:[{type:"circle",x:100,y:100,radius:20,color:"#228B22"},{type:"circle",x:300,y:150,radius:20,color:"#228B22"},{type:"circle",x:500,y:100,radius:20,color:"#228B22"},{type:"circle",x:200,y:300,radius:20,color:"#228B22"},{type:"circle",x:600,y:200,radius:20,color:"#228B22"}]}
+        "KITCHEN":{
+            floor:1,
+            weapons:[
+                {name:"Knife",x:50,y:50,w:20,h:20}
+            ],
+            walls:[
+                {x:0,y:0,w:800,h:10},
+                {x:0,y:0,w:10,h:600},
+                {x:790,y:0,w:10,h:600},
+                {x:0,y:590,w:800,h:10}
+            ],
+            doors:[
+                {x:789,y:250,w:11,h:100,to:"BALLROOM"}
+            ],
+            stairs:null
+        },
+        "BALLROOM":{
+            floor:1,
+            weapons:[
+                {name:"Candlestick",x:300,y:100,w:20,h:20}
+            ],
+            walls:[
+                {x:0,y:0,w:800,h:10},
+                {x:0,y:0,w:10,h:600},
+                {x:790,y:0,w:10,h:600},
+                {x:0,y:590,w:800,h:10}
+            ],
+            doors:[
+                {x:0,y:250,w:11,h:100,to:"KITCHEN"},
+                {x:350,y:589,w:100,h:11,to:"DINING ROOM"},
+                {x:789,y:100,w:11,h:100,to:"HALL"}
+            ],
+            stairs:null
+        },
+        "HALL":{
+            floor:1,
+            weapons:[
+                {name:"Pistol",x:200,y:100,w:20,h:20}
+            ],
+            walls:[
+                {x:0,y:0,w:800,h:10},
+                {x:0,y:0,w:10,h:600},
+                {x:790,y:0,w:10,h:600},
+                {x:0,y:590,w:800,h:10}
+            ],
+            doors:[
+                {x:0,y:100,w:11,h:100,to:"BALLROOM"}
+            ],
+            stairs:null
+        },
+        "DINING ROOM":{
+            floor:1,
+            weapons:[
+                {name:"Wrench",x:100,y:50,w:20,h:20}
+            ],
+            walls:[
+                {x:0,y:0,w:800,h:10},
+                {x:0,y:0,w:10,h:600},
+                {x:790,y:0,w:10,h:600},
+                {x:0,y:590,w:800,h:10},
+                {x:740,y:530,w:50,h:10}
+            ],
+            doors:[
+                {x:350,y:0,w:100,h:11,to:"BALLROOM"}
+            ],
+            stairs:{x:740,y:540,w:50,h:50,to:"ART ROOM"},
+            objects:[
+                {type:"circle",x:400,y:300,radius:50,color:"#FFFF99"}
+            ]
+        },
+        "ART ROOM":{
+            floor:2,
+            weapons:[
+                {name:"Lead Pipe",x:600,y:100,w:20,h:20}
+            ],
+            walls:[
+                {x:0,y:0,w:800,h:10},
+                {x:0,y:0,w:10,h:600},
+                {x:790,y:0,w:10,h:600},
+                {x:0,y:590,w:800,h:10},
+                {x:10,y:530,w:50,h:10}
+            ],
+            doors:[
+                {x:0,y:250,w:11,h:100,to:"CONSERVATORY"}
+            ],
+            stairs:{x:10,y:540,w:50,h:50,to:"DINING ROOM"},
+            objects:[
+                {type:"rect",x:100,y:100,w:80,h:50,color:"#FF0000"},
+                {type:"rect",x:600,y:100,w:80,h:50,color:"#00FF00"},
+                {type:"rect",x:100,y:400,w:80,h:50,color:"#0000FF"},
+                {type:"rect",x:600,y:400,w:80,h:50,color:"#FFFF00"}
+            ]
+        },
+        "CONSERVATORY":{
+            floor:2,
+            weapons:[
+                {name:"Rope",x:600,y:50,w:20,h:20}
+            ],
+            walls:[
+                {x:0,y:0,w:800,h:10},
+                {x:0,y:0,w:10,h:600},
+                {x:790,y:0,w:10,h:600},
+                {x:0,y:590,w:800,h:10}
+            ],
+            doors:[
+                {x:789,y:250,w:11,h:100,to:"ART ROOM"}
+            ],
+            stairs:null,
+            objects:[
+                {type:"circle",x:100,y:100,radius:20,color:"#228B22"},
+                {type:"circle",x:300,y:150,radius:20,color:"#228B22"},
+                {type:"circle",x:500,y:100,radius:20,color:"#228B22"},
+                {type:"circle",x:200,y:300,radius:20,color:"#228B22"},
+                {type:"circle",x:600,y:200,radius:20,color:"#228B22"}
+            ]
+        }
     };
 
     // ---------- HUD ----------
