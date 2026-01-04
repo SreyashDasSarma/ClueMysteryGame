@@ -490,53 +490,51 @@
     }
 
     function draw(){
-        if(gameOver) return;
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        const room=ROOMS[currentRoom];
-        ctx.fillStyle="#FFC8C8"; ctx.fillRect(0,0,canvas.width,canvas.height); // light yellow
-        ctx.fillStyle="#000"; for(const w of room.walls) ctx.fillRect(w.x,w.y,w.w,w.h);
-        ctx.fillStyle="#FFD700"; for(const d of room.doors) ctx.fillRect(d.x,d.y,d.w,d.h);
-        if(room.stairs){ ctx.fillStyle="#969696"; ctx.fillRect(room.stairs.x,room.stairs.y,room.stairs.w,room.stairs.h); }
-        if(room.objects){ for(const obj of room.objects){ if(obj.type==="circle"){ ctx.fillStyle=obj.color; ctx.beginPath(); ctx.arc(obj.x,obj.y,obj.radius,0,2*Math.PI); ctx.fill(); } else if(obj.type==="rect"){ ctx.fillStyle=obj.color; ctx.fillRect(obj.x,obj.y,obj.w,obj.h); } } }
-        ctx.fillStyle="#008000"; for(const w of room.weapons) ctx.fillRect(w.x,w.y,w.w,w.h); // green
-        ctx.fillStyle="#3264FF"; ctx.fillRect(player.x,player.y,player.w,player.h);
-        for(const g of guards){ if(g.room===currentRoom){ ctx.fillStyle="red"; ctx.fillRect(g.x,g.y,g.w,g.h); } }
-        requestAnimationFrame(draw);
-    }
-
-    function drawMap() {
+            if(gameOver) return;
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            const room=ROOMS[currentRoom];
+            ctx.fillStyle="#FFC8C8"; ctx.fillRect(0,0,canvas.width,canvas.height); // light yellow
+            ctx.fillStyle="#000"; for(const w of room.walls) ctx.fillRect(w.x,w.y,w.w,w.h);
+            ctx.fillStyle="#FFD700"; for(const d of room.doors) ctx.fillRect(d.x,d.y,d.w,d.h);
+            if(room.stairs){ ctx.fillStyle="#969696"; ctx.fillRect(room.stairs.x,room.stairs.y,room.stairs.w,room.stairs.h); }
+            if(room.objects){ for(const obj of room.objects){ if(obj.type==="circle"){ ctx.fillStyle=obj.color; ctx.beginPath(); ctx.arc(obj.x,obj.y,obj.radius,0,2*Math.PI); ctx.fill(); } else if(obj.type==="rect"){ ctx.fillStyle=obj.color; ctx.fillRect(obj.x,obj.y,obj.w,obj.h); } } }
+            ctx.fillStyle="#008000"; for(const w of room.weapons) ctx.fillRect(w.x,w.y,w.w,w.h); // green
+            ctx.fillStyle="#3264FF"; ctx.fillRect(player.x,player.y,player.w,player.h);
+            for(const g of guards){ if(g.room===currentRoom){ ctx.fillStyle="red"; ctx.fillRect(g.x,g.y,g.w,g.h); } }
+            requestAnimationFrame(draw);
+        }
+    
+        function drawMap() {
         mapCtx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
     
-        let i = 0;
         const allRooms = Object.keys(ROOMS);
-    
-        // Check if we're on a mobile device
         const isMobile = isMobileDevice();
-    
+        
+        // Handle mobile layout (rooms side by side)
         if (isMobile) {
-            // Horizontal layout for mobile (rooms side-by-side)
-            let offsetX = 20; // Starting X position
+            let offsetX = 20; // Starting position for X on mobile
             for (const r of allRooms) {
                 mapCtx.fillStyle = "#FFFFC8";
                 mapCtx.fillRect(offsetX, 20, 100, 50); // Room box
                 mapCtx.fillStyle = "black";
                 mapCtx.fillText(r, offsetX + 5, 50); // Room name
-                offsetX += 120; // Space out rooms horizontally
+                offsetX += 120; // Increase the horizontal spacing
             }
         } else {
-            // Vertical layout for desktop (rooms stacked)
-            let offsetY = 20; // Starting Y position
+            // Handle desktop layout (rooms stacked vertically)
+            let offsetY = 20; // Starting position for Y on desktop
             for (const r of allRooms) {
                 mapCtx.fillStyle = "#FFFFC8";
                 mapCtx.fillRect(20, offsetY, 100, 50); // Room box
                 mapCtx.fillStyle = "black";
                 mapCtx.fillText(r, 25, offsetY + 30); // Room name
-                offsetY += 70; // Space out rooms vertically
+                offsetY += 70; // Increase the vertical spacing
             }
         }
-
+    
         if (showMap) requestAnimationFrame(drawMap);
     }
+
 
 
     function gameLoop(){
