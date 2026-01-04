@@ -503,12 +503,12 @@
             for(const g of guards){ if(g.room===currentRoom){ ctx.fillStyle="red"; ctx.fillRect(g.x,g.y,g.w,g.h); } }
             requestAnimationFrame(draw);
         }
-    
+
         function drawMap() {
-        
+
             const allRooms = Object.keys(ROOMS);
             const isMobile = isMobileDevice();
-            
+
             // Handle mobile layout (rooms side by side)
             if (isMobile) {
                 mapCanvas.width = 600;
@@ -517,7 +517,7 @@
                 let offsetX = 20;  // Starting position for X on mobile
                 const roomWidth = 100;  // Width of each room on the map
                 const roomHeight = 50;  // Height of each room
-            
+
                 // Draw each room horizontally (side by side)
                 allRooms.forEach((r) => {
                     mapCtx.fillStyle = "#FFFFC8";
@@ -540,7 +540,7 @@
                     offsetY += 70; // Increase the vertical spacing
                 }
             }
-        
+
             if (showMap) requestAnimationFrame(drawMap);
         }
 
@@ -557,10 +557,10 @@
     document.getElementById("mapButton").addEventListener("click", () => {
         showMap = !showMap;
         mapCanvas.style.display = showMap ? "block" : "none"; // Show/hide map
-    
+
         // Dynamically change the layout when map is toggled
         const container = document.getElementById("gameContainer");
-    
+
         // Mobile: stack vertically, Desktop: side by side
         if (showMap) {
             if (isMobileDevice()) {
