@@ -141,6 +141,8 @@
     const livesInfo = document.getElementById("livesInfo");
     const cheatDisplay = document.getElementById("cheatDisplay");
 
+    let gameLoopId = null;
+
     let player = {x:50,y:50,w:25,h:25,speed:3};
     let score = 0;
     let collected = [];
@@ -393,13 +395,22 @@
         updateHUD();
     }
 
-    function handleKeyboardMovement(){
-        if(keysPressed["ArrowLeft"]) moveFromButton("left");
-        if(keysPressed["ArrowRight"]) moveFromButton("right");
-        if(keysPressed["ArrowUp"]) moveFromButton("up");
-        if(keysPressed["ArrowDown"]) moveFromButton("down");
+    function handleKeyboardMovement() {
+        if (gameOver) {
+            player.speed = 0;  // Stop the player
+            for (let key in keysPressed) {
+                keysPressed[key] = false;  // Ensure all keys are released
+            }
+            return;  // Exit function immediately
+        }
+        // Continue movement logic as normal
+        if (keysPressed["ArrowLeft"]) moveFromButton("left");
+        if (keysPressed["ArrowRight"]) moveFromButton("right");
+        if (keysPressed["ArrowUp"]) moveFromButton("up");
+        if (keysPressed["ArrowDown"]) moveFromButton("down");
         requestAnimationFrame(handleKeyboardMovement);
     }
+
     handleKeyboardMovement();
 
     // ---------- Mobile buttons ----------
@@ -475,19 +486,27 @@
         }
     }
 
-    function moveGuards(){
-        for(const g of guards){
-            if(g.room!==currentRoom) continue;
-            g.x+=g.dx*g.speed; g.y+=g.dy*g.speed;
-            g.x=Math.max(10,Math.min(g.x,790-g.w)); g.y=Math.max(10,Math.min(g.y,590-g.h));
-            if(Math.random()<0.01){ g.dx=Math.floor(Math.random()*3)-1; g.dy=Math.floor(Math.random()*3)-1; }
-            if(player.x<g.x+g.w && player.x+player.w>g.x && player.y<g.y+g.h && player.y+player.h>g.y){
-                lives-=deathPenalty; updateHUD();
-                if(lives<=0){ gameOver=true; alert("Game Over!"); }
-                else{ player.x=50; player.y=50; }
+    function moveGuards() {
+        for (const g of guards) {
+            if (g.room !== currentRoom) continue;
+            g.x += g.dx * g.speed; g.y += g.dy * g.speed;
+            g.x = Math.max(10, Math.min(g.x, 790 - g.w)); g.y = Math.max(10, Math.min(g.y, 590 - g.h));
+            if (Math.random() < 0.01) { g.dx = Math.floor(Math.random() * 3) - 1; g.dy = Math.floor(Math.random() * 3) - 1; }
+            if (player.x < g.x + g.w && player.x + player.w > g.x && player.y < g.y + g.h && player.y + player.h > g.y) {
+                lives -= deathPenalty;
+                updateHUD();
+                if (lives <= 0) {
+                    gameOver = true;
+                    alert("Game Over! Resetting the game...");
+                    resetGame();  // Reset the game here when lives reach 0
+                } else {
+                    player.x = 50;
+                    player.y = 50;
+                }
             }
         }
     }
+
 
     function draw(){
             if(gameOver) return;
@@ -544,13 +563,49 @@
             if (showMap) requestAnimationFrame(drawMap);
         }
 
+    function resetGame() {
+        // Reset player position and other game state variables
+        player = {x: 50, y: 50, w: 25, h: 25, speed: 3};
+        score = 0;
+        collected = [];
+        currentRoom = "BALLROOM";
+        lives = 3;
+        gameOver = false;
 
+        // Reset guards if necessary
+        guards = [
+            {x: 200, y: 150, w: 25, h: 25, speed: 2, dx: 1, dy: 0, room: "BALLROOM"},
+            {x: 500, y: 400, w: 25, h: 25, speed: 1.5, dx: 0, dy: 1, room: "DINING ROOM"}
+        ];
 
-    function gameLoop(){
-        moveGuards();
-        handleCollisions(player.x,player.y);
-        requestAnimationFrame(gameLoop);
+        // Reset the HUD
+        updateHUD();
+
+        for (let key in keysPressed) {
+            keysPressed[key] = false;
+        }
+        if (gameLoopId !== null) {
+            cancelAnimationFrame(gameLoopId);  // Cancel the previous game loop
+        }
+        gameLoopId = requestAnimationFrame(gameLoop);  // Start new game loop
     }
+
+
+
+    function gameLoop() {
+        if (gameOver) {
+            if (gameLoopId !== null) {
+                cancelAnimationFrame(gameLoopId);  // Stop the game loop when game is over
+                gameLoopId = null;  // Reset the loop ID
+            }
+            return;  // Prevent any further game logic from executing
+        }
+        moveGuards();
+        handleCollisions(player.x, player.y);
+        requestAnimationFrame(gameLoop);  // Continue the loop
+    }
+
+
     draw();
     gameLoop();
 
