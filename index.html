@@ -511,11 +511,11 @@
 
             // Handle mobile layout (rooms side by side)
             if (isMobile) {
-                mapCanvas.width = 600;
-                mapCanvas.height = 115;
+                mapCanvas.width = 700;
+                mapCanvas.height = 140;
                 mapCtx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
                 let offsetX = 20;  // Starting position for X on mobile
-                const roomWidth = 75;  // Width of each room on the map
+                const roomWidth = 100;  // Width of each room on the map
                 const roomHeight = 50;  // Height of each room
 
                 // Draw each room horizontally (side by side)
@@ -527,14 +527,14 @@
                     offsetX += roomWidth + 20;  // Increase offset for next room (horizontal layout)
                 })
             } else {
-                mapCanvas.width = 115;
+                mapCanvas.width = 140;
                 mapCanvas.height = 440;
                 mapCtx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
                 // Handle desktop layout (rooms stacked vertically)
                 let offsetY = 20; // Starting position for Y on desktop
                 for (const r of allRooms) {
                     mapCtx.fillStyle = "#FFFFC8";
-                    mapCtx.fillRect(20, offsetY, 75, 50); // Room box
+                    mapCtx.fillRect(20, offsetY, 100, 50); // Room box
                     mapCtx.fillStyle = "black";
                     mapCtx.fillText(r, 25, offsetY + 30); // Room name
                     offsetY += 70; // Increase the vertical spacing
