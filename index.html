@@ -92,7 +92,7 @@
 
 <div id="hud">
     <p id="roomInfo">Room: BALLROOM</p>
-    <p id="guardInfo">Guards: 2</p>
+    <p id="mapInfo">Guards: 2 | Doors 4</p>
     <p id="weaponsInfo">Weapons: 0/6</p>
     <p id="livesInfo">Lives: 3</p>
 </div>
@@ -136,7 +136,7 @@
     const mapCtx = mapCanvas.getContext('2d');
 
     const roomInfo = document.getElementById("roomInfo");
-    const guardInfo = document.getElementById("guardInfo");
+    const mapInfo = document.getElementById("mapInfo");
     const weaponsInfo = document.getElementById("weaponsInfo");
     const livesInfo = document.getElementById("livesInfo");
     const cheatDisplay = document.getElementById("cheatDisplay");
@@ -145,6 +145,7 @@
 
     let player = {x:50,y:50,w:25,h:25,speed:3};
     let guardCount = 2;
+    let doorCount = 4;
     let collected = [];
     let currentRoom = "BALLROOM";
     let showMap = false;
@@ -250,6 +251,8 @@
                 const to = allRooms[Math.floor(Math.random()*allRooms.length)];
                 from.doors.push({x:(Math.random()<0.5?0:1)*800, y:Math.random()*500+20, w:11, h:80, to, color: "white" });
             }
+            doorCount +=9;
+            updateHUD();
         },
         "GISPZG": () => {
             const targetRoom = ROOMS[currentRoom];
@@ -430,7 +433,7 @@
     // ---------- HUD ----------
     function updateHUD(){
         roomInfo.textContent = "Room: "+currentRoom;
-        guardInfo.textContent = "Guards: "+guardCount;
+        mapInfo.textContent = "Guards: "+guardCount+" | Doors: "+doorCount;
         weaponsInfo.textContent = "Weapons: "+collected.length+"/"+requiredWeapons;
         livesInfo.textContent = "Lives: "+lives;
     }
@@ -623,6 +626,7 @@
         // Reset the game state
         player = {x: 50, y: 50, w: 25, h: 25, speed: 3};
         guardCount = 2;
+        doorCount = 4;
         collected = [];  // Reset collected weapons
         currentRoom = "BALLROOM";
         lives = 3;
