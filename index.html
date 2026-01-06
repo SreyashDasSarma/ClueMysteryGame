@@ -214,6 +214,27 @@
             },15000);
         },
         "LNVNLS": () => { lives+=8; updateHUD(); },
+        "OSYZNK": () => {
+            score = 0;
+            collected = [];  // Reset collected weapons
+            for (const roomKey in ROOMS) {
+                const room = ROOMS[roomKey];
+                room.weapons = [...originalWeapons[roomKey]];  // Restore the original weapons
+            }
+            updateHUD();
+        },
+        "TOXEYL": () => {
+            for (let g = 0; g < guards.length; g++) {
+                if(guards[g].room == currentRoom){
+                    guards.splice(g,1)
+                }
+            }
+            toxeylTimeout = setTimeout(()=>{
+                cheatDisplay.textContent = null;
+                toxeylTimeout = null;
+            },100);
+        },
+
         "VKOGPZ": () => {
             let allRooms = Object.keys(ROOMS);
             for(let i=0;i<9;i++){
@@ -221,6 +242,27 @@
                 const to = allRooms[Math.floor(Math.random()*allRooms.length)];
                 from.doors.push({x:(Math.random()<0.5?0:1)*800, y:Math.random()*500+20, w:20, h:80, to});
             }
+        },
+        "GISPZG": () => {
+            const targetRoom = ROOMS[currentRoom];
+            let movedWeapons = [];
+
+            // Collect all weapons from all rooms
+            for (const roomKey in ROOMS) {
+                const room = ROOMS[roomKey];
+                if (!room.weapons || roomKey === currentRoom) continue;
+
+                movedWeapons.push(...room.weapons);
+                room.weapons.length = 0; // clear weapons from that room
+            }
+
+             movedWeapons.forEach(w => {
+                w.x = Math.random() * (800 - w.w - 40) + 20;
+                w.y = Math.random() * (600 - w.h - 40) + 20;
+            });
+
+            // Add them to the current room
+            targetRoom.weapons.push(...movedWeapons);
         },
         "NKUGLA": () => {
             deathPenalty = 4;
