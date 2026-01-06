@@ -92,7 +92,7 @@
 
 <div id="hud">
     <p id="roomInfo">Room: BALLROOM</p>
-    <p id="scoreInfo">Score: 0</p>
+    <p id="guardInfo">Guards: 2</p>
     <p id="weaponsInfo">Weapons: 0/6</p>
     <p id="livesInfo">Lives: 3</p>
 </div>
@@ -136,7 +136,7 @@
     const mapCtx = mapCanvas.getContext('2d');
 
     const roomInfo = document.getElementById("roomInfo");
-    const scoreInfo = document.getElementById("scoreInfo");
+    const guardInfo = document.getElementById("guardInfo");
     const weaponsInfo = document.getElementById("weaponsInfo");
     const livesInfo = document.getElementById("livesInfo");
     const cheatDisplay = document.getElementById("cheatDisplay");
@@ -144,15 +144,15 @@
     let gameLoopId = null;
 
     let player = {x:50,y:50,w:25,h:25,speed:3};
-    let score = 0;
+    let guardCount = 2;
     let collected = [];
     let currentRoom = "BALLROOM";
     let showMap = false;
     let lives = 3;
     let gameOver = false;
     let guards = [
-        {x:200,y:150,w:25,h:25,speed:1,dx:1,dy:0,room:"BALLROOM"},
-        {x:500,y:400,w:25,h:25,speed:1,dx:0,dy:1,room:"DINING ROOM"}
+        { x:200, y:150, w:25, h:25, speed:1, dx:1, dy:0, room:"BALLROOM", fill:"red", outline:"black" },
+        { x:500, y:400, w:25, h:25, speed:1, dx:0, dy:1, room:"DINING ROOM", fill:"red", outline:"black" }
     ];
     let requiredWeapons = 6;
     let deathPenalty = 1;
@@ -161,6 +161,9 @@
     let activeGuards = [];
     let zkyekoTimeout = null;
     let nkuglaTimeout = null;
+    let anzpylTimeout = null;
+
+    const secretCodes = ["ANZPYL", "PSPTVX", "ZKYEKO", "LNVNLS", "VKOGPZ", "NKUGLA"]
 
     const cheatCodes = {
         "ANZPYL": () => {
@@ -170,7 +173,7 @@
                     x: Math.random()*700+50,
                     y: Math.random()*500+50,
                     w:25,h:25,
-                    speed:1+Math.random()*2,
+                    speed:1,
                     dx:Math.floor(Math.random()*3)-1,
                     dy:Math.floor(Math.random()*3)-1,
                     room: currentRoom
@@ -179,12 +182,15 @@
                 added.push(g);
             }
             activeGuards.push(...added);
+            guardCount = guards.length
             // remove after 15s
-            setTimeout(()=>{
+            anzpylTimeout = setTimeout(()=>{
                 for(const g of added){
                     const idx=guards.indexOf(g);
                     if(idx>=0) guards.splice(idx,1);
                 }
+                guardCount = guards.length
+                cheatDisplay.textContent = "ANZPYL effect ended";
             },15000);
         },
         "ZKYEKO": () => {
@@ -215,7 +221,6 @@
         },
         "LNVNLS": () => { lives+=8; updateHUD(); },
         "OSYZNK": () => {
-            score = 0;
             collected = [];  // Reset collected weapons
             for (const roomKey in ROOMS) {
                 const room = ROOMS[roomKey];
@@ -224,23 +229,26 @@
             updateHUD();
         },
         "TOXEYL": () => {
-            for (let g = 0; g < guards.length; g++) {
+            if(anzpylTimeout){
+                clearTimeout(anzpylTimeout);
+                anzpylTimeout = null;
+            }
+            added = [];
+            activeGuards = [];
+            for (let g = guards.length-1; g >= 0; g--) {
                 if(guards[g].room == currentRoom){
                     guards.splice(g,1)
                 }
             }
-            toxeylTimeout = setTimeout(()=>{
-                cheatDisplay.textContent = null;
-                toxeylTimeout = null;
-            },100);
+            guardCount = guards.length;
+            updateHUD();
         },
-
         "VKOGPZ": () => {
             let allRooms = Object.keys(ROOMS);
             for(let i=0;i<9;i++){
                 const from = ROOMS[allRooms[Math.floor(Math.random()*allRooms.length)]];
                 const to = allRooms[Math.floor(Math.random()*allRooms.length)];
-                from.doors.push({x:(Math.random()<0.5?0:1)*800, y:Math.random()*500+20, w:20, h:80, to});
+                from.doors.push({x:(Math.random()<0.5?0:1)*800, y:Math.random()*500+20, w:11, h:80, to, color: "white" });
             }
         },
         "GISPZG": () => {
@@ -284,7 +292,11 @@
         if(cheatCodes[code]){
             cheatCodes[code]();
             cheatInput.value = "";
-            cheatDisplay.textContent = "Cheat activated: " + code;
+            if(secretCodes.includes(code)){
+                cheatDisplay.textContent = "Cheat activated: " + code;
+            }else{
+                cheatDisplay.textContent = null;
+            }
             updateHUD();
         } else {
             cheatDisplay.textContent = "Invalid cheat: " + code;
@@ -418,7 +430,7 @@
     // ---------- HUD ----------
     function updateHUD(){
         roomInfo.textContent = "Room: "+currentRoom;
-        scoreInfo.textContent = "Score: "+score;
+        guardInfo.textContent = "Guards: "+guardCount;
         weaponsInfo.textContent = "Weapons: "+collected.length+"/"+requiredWeapons;
         livesInfo.textContent = "Lives: "+lives;
     }
@@ -497,7 +509,6 @@
             if(player.x+player.w>w.x && player.x<w.x+w.w && player.y+player.h>w.y && player.y<w.y+w.h){
                 collected.push(w.name);
                 room.weapons.splice(i,1);
-                score+=100;
                 if(collected.length >= requiredWeapons){
                     gameOver = true;
                     alert("Congratulations! You collected all weapons and won the game!");
@@ -536,12 +547,21 @@
             const room=ROOMS[currentRoom];
             ctx.fillStyle="#FFC8C8"; ctx.fillRect(0,0,canvas.width,canvas.height); // light yellow
             ctx.fillStyle="#000"; for(const w of room.walls) ctx.fillRect(w.x,w.y,w.w,w.h);
-            ctx.fillStyle="#FFD700"; for(const d of room.doors) ctx.fillRect(d.x,d.y,d.w,d.h);
+            for(const d of room.doors){ ctx.fillStyle = d.color || "#FFD700"; ctx.fillRect(d.x,d.y,d.w,d.h);}
             if(room.stairs){ ctx.fillStyle="#969696"; ctx.fillRect(room.stairs.x,room.stairs.y,room.stairs.w,room.stairs.h); }
             if(room.objects){ for(const obj of room.objects){ if(obj.type==="circle"){ ctx.fillStyle=obj.color; ctx.beginPath(); ctx.arc(obj.x,obj.y,obj.radius,0,2*Math.PI); ctx.fill(); } else if(obj.type==="rect"){ ctx.fillStyle=obj.color; ctx.fillRect(obj.x,obj.y,obj.w,obj.h); } } }
             ctx.fillStyle="#008000"; for(const w of room.weapons) ctx.fillRect(w.x,w.y,w.w,w.h); // green
             ctx.fillStyle="#3264FF"; ctx.fillRect(player.x,player.y,player.w,player.h);
-            for(const g of guards){ if(g.room===currentRoom){ ctx.fillStyle="red"; ctx.fillRect(g.x,g.y,g.w,g.h); } }
+            for(const g of guards){
+                if(g.room===currentRoom){
+                    ctx.fillStyle="red";
+                    ctx.fillRect(g.x,g.y,g.w,g.h);
+
+                    ctx.strokeStyle = "black";
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(g.x, g.y, g.w, g.h);
+                }
+            }
             requestAnimationFrame(draw);
         }
 
@@ -602,7 +622,7 @@
 
         // Reset the game state
         player = {x: 50, y: 50, w: 25, h: 25, speed: 3};
-        score = 0;
+        guardCount = 2;
         collected = [];  // Reset collected weapons
         currentRoom = "BALLROOM";
         lives = 3;
