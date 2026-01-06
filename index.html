@@ -85,6 +85,17 @@
                 margin-left: 10px; /* Space between game and map */
             }
         }
+        #livesIcons {
+            display: inline-flex;
+            gap: 5px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .life-icon {
+            width: 24px;
+            height: 24px;
+        }
     </style>
 </head>
 <body>
@@ -94,7 +105,9 @@
     <p id="roomInfo">Room: BALLROOM</p>
     <p id="mapInfo">Guards: 2 | Doors 4</p>
     <p id="weaponsInfo">Weapons: 0/6</p>
-    <p id="livesInfo">Lives: 5</p>
+    <p id="livesInfo">Lives:</p>
+    <div id="livesIcons"></div>
+
 </div>
 
 <div id="gameContainer">
@@ -143,7 +156,7 @@
 
     let gameLoopId = null;
 
-    let player = {x:50,y:50,w:25,h:25,speed:3};
+    let player = {x:50,y:50,w:25,h:46,speed:3};
     let guardCount = 2;
     let doorCount = 4;
     let collected = [];
@@ -157,6 +170,18 @@
     ];
     let requiredWeapons = 6;
     let deathPenalty = 1;
+
+    const sprites = {};
+    function loadSprite(key,src){
+        const img = new Image();
+        img.src = src;
+        sprites[key] = img;
+    }
+    loadSprite("player", "assets/player.png");
+    loadSprite("guard", "assets/guard.png");
+    loadSprite("weapon1", "assets/weapon_sword.png");
+    loadSprite("weapon2", "assets/weapon_mace.png");
+    loadSprite("weapon3", "assets/weapon_bow.png");
 
     // --- Temporary active cheat trackers ---
     let activeGuards = [];
@@ -246,7 +271,6 @@
         },
         "PSPTVX": () => {
             const allRooms = Object.keys(ROOMS);
-
             for (let i = 0; i < 18; i++) {
                 const roomKey = allRooms[Math.floor(Math.random() * allRooms.length)];
                 const room = ROOMS[roomKey];
@@ -257,10 +281,11 @@
                     w: 20,
                     h: 20,
                     x: Math.random() * (800 - 40) + 20,
-                    y: Math.random() * (600 - 40) + 20
+                    y: Math.random() * (600 - 40) + 20,
+                    icon: "weapon"+(i%3+1)+""
                 };
 
-                // Add weapon to the room
+                // Add the new weapon to the room’s weapons array (without affecting other room properties)
                 room.weapons.push(weapon);
             }
             requiredWeapons += 18;
@@ -374,7 +399,7 @@
         "KITCHEN":{
             floor:1,
             weapons:[
-                {name:"Knife",x:50,y:50,w:20,h:20}
+                {name:"Knife",x:50,y:50,w:20,h:20,icon: "weapon1"}
             ],
             walls:[
                 {x:0,y:0,w:800,h:10},
@@ -390,7 +415,7 @@
         "BALLROOM":{
             floor:1,
             weapons:[
-                {name:"Candlestick",x:300,y:100,w:20,h:20}
+                {name:"Candlestick",x:300,y:100,w:20,h:20,icon: "weapon3"}
             ],
             walls:[
                 {x:0,y:0,w:800,h:10},
@@ -408,7 +433,7 @@
         "HALL":{
             floor:1,
             weapons:[
-                {name:"Pistol",x:200,y:100,w:20,h:20}
+                {name:"Pistol",x:200,y:100,w:20,h:20,icon: "weapon2"}
             ],
             walls:[
                 {x:0,y:0,w:800,h:10},
@@ -424,7 +449,7 @@
         "DINING ROOM":{
             floor:1,
             weapons:[
-                {name:"Wrench",x:100,y:50,w:20,h:20}
+                {name:"Wrench",x:100,y:50,w:20,h:20,icon: "weapon1"}
             ],
             walls:[
                 {x:0,y:0,w:800,h:10},
@@ -438,13 +463,13 @@
             ],
             stairs:{x:740,y:540,w:50,h:50,to:"ART ROOM"},
             objects:[
-                {type:"circle",x:400,y:300,radius:50,color:"#FFFF99"}
+                
             ]
         },
         "ART ROOM":{
             floor:2,
             weapons:[
-                {name:"Lead Pipe",x:600,y:100,w:20,h:20}
+                {name:"Lead Pipe",x:600,y:100,w:20,h:20,icon: "weapon2"}
             ],
             walls:[
                 {x:0,y:0,w:800,h:10},
@@ -458,16 +483,13 @@
             ],
             stairs:{x:10,y:540,w:50,h:50,to:"DINING ROOM"},
             objects:[
-                {type:"rect",x:100,y:100,w:80,h:50,color:"#FF0000"},
-                {type:"rect",x:600,y:100,w:80,h:50,color:"#00FF00"},
-                {type:"rect",x:100,y:400,w:80,h:50,color:"#0000FF"},
-                {type:"rect",x:600,y:400,w:80,h:50,color:"#FFFF00"}
+                
             ]
         },
         "CONSERVATORY":{
             floor:2,
             weapons:[
-                {name:"Rope",x:600,y:50,w:20,h:20}
+                {name:"Rope",x:600,y:50,w:20,h:20,icon: "weapon3"}
             ],
             walls:[
                 {x:0,y:0,w:800,h:10},
@@ -480,11 +502,7 @@
             ],
             stairs:null,
             objects:[
-                {type:"circle",x:100,y:100,radius:20,color:"#228B22"},
-                {type:"circle",x:300,y:150,radius:20,color:"#228B22"},
-                {type:"circle",x:500,y:100,radius:20,color:"#228B22"},
-                {type:"circle",x:200,y:300,radius:20,color:"#228B22"},
-                {type:"circle",x:600,y:200,radius:20,color:"#228B22"}
+                
             ]
         }
     };
@@ -492,11 +510,21 @@
 
     backupOriginalWeapons();
     // ---------- HUD ----------
+    const livesIcons = document.getElementById("livesIcons");
     function updateHUD(){
         roomInfo.textContent = "Room: "+currentRoom;
         mapInfo.textContent = "Guards: "+guardCount+" | Doors: "+doorCount;
         weaponsInfo.textContent = "Weapons: "+collected.length+"/"+requiredWeapons;
-        livesInfo.textContent = "Lives: "+lives;
+        livesIcons.innerHTML = "";
+
+        // Draw one icon per life
+        for (let i = 0; i < lives; i++) {
+            const img = document.createElement("img");
+            img.src = "assets/heart.png";
+            img.className = "life-icon";
+            img.alt = "Life";
+            livesIcons.appendChild(img);
+        }
     }
 
     // ---------- Movement ----------
@@ -609,21 +637,32 @@
             if(gameOver) return;
             ctx.clearRect(0,0,canvas.width,canvas.height);
             const room=ROOMS[currentRoom];
-            ctx.fillStyle="#FFC8C8"; ctx.fillRect(0,0,canvas.width,canvas.height); // light yellow
+            ctx.fillStyle="#FFC8C8"; ctx.fillRect(0,0,canvas.width,canvas.height); // light red
             ctx.fillStyle="#000"; for(const w of room.walls) ctx.fillRect(w.x,w.y,w.w,w.h);
             for(const d of room.doors){ ctx.fillStyle = d.color || "#FFD700"; ctx.fillRect(d.x,d.y,d.w,d.h);}
             if(room.stairs){ ctx.fillStyle="#969696"; ctx.fillRect(room.stairs.x,room.stairs.y,room.stairs.w,room.stairs.h); }
-            if(room.objects){ for(const obj of room.objects){ if(obj.type==="circle"){ ctx.fillStyle=obj.color; ctx.beginPath(); ctx.arc(obj.x,obj.y,obj.radius,0,2*Math.PI); ctx.fill(); } else if(obj.type==="rect"){ ctx.fillStyle=obj.color; ctx.fillRect(obj.x,obj.y,obj.w,obj.h); } } }
-            ctx.fillStyle="#008000"; for(const w of room.weapons) ctx.fillRect(w.x,w.y,w.w,w.h); // green
-            ctx.fillStyle="#3264FF"; ctx.fillRect(player.x,player.y,player.w,player.h);
+            if(room.objects){
+                for(const obj of room.objects){
+                    if(obj.type==="circle"){
+                        ctx.fillStyle=obj.color;
+                        ctx.beginPath();
+                        ctx.arc(obj.x,obj.y,obj.radius,0,2*Math.PI); ctx.fill();
+                    }
+                    else if(obj.type==="rect"){
+                        ctx.fillStyle=obj.color;
+                        ctx.fillRect(obj.x,obj.y,obj.w,obj.h);
+                    }
+                }
+            }
+            ctx.fillStyle="#008000";
+            for(const w of room.weapons){
+                ctx.drawImage(sprites[w.icon],w.x,w.y,w.w,w.h);
+            }
+            ctx.drawImage(sprites["player"],player.x,player.y,player.w,player.h);
             for(const g of guards){
                 if(g.room===currentRoom){
                     ctx.fillStyle="red";
-                    ctx.fillRect(g.x,g.y,g.w,g.h);
-
-                    ctx.strokeStyle = "black";
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(g.x, g.y, g.w, g.h);
+                    ctx.drawImage(sprites["guard"],g.x,g.y,g.w,g.h);
                 }
             }
             requestAnimationFrame(draw);
@@ -685,7 +724,7 @@
         }
 
         // Reset the game state
-        player = {x: 50, y: 50, w: 25, h: 25, speed: 3};
+        player = {x: 50, y: 50, w: 25, h: 46, speed: 3};
         guardCount = 2;
         doorCount = 4;
         collected = [];  // Reset collected weapons
@@ -782,6 +821,8 @@
             }
         }
     }
+
+
 
     draw();
     gameLoop();
