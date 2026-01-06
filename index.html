@@ -94,7 +94,7 @@
     <p id="roomInfo">Room: BALLROOM</p>
     <p id="mapInfo">Guards: 2 | Doors 4</p>
     <p id="weaponsInfo">Weapons: 0/6</p>
-    <p id="livesInfo">Lives: 3</p>
+    <p id="livesInfo">Lives: 5</p>
 </div>
 
 <div id="gameContainer">
@@ -117,7 +117,7 @@
     1. Use the arrow keys to travel between rooms. <br>
     2. Navigate the mansion to collect all six weapons. <br>
     3. Avoid the guards! Each guard hit costs a life. <br>
-    4. You have 3 lives. Lose all, and it's Game Over. <br>
+    4. You have 5 lives. Lose all, and it's Game Over. <br>
     5. Check the map to view your location.
 </p>
 
@@ -149,7 +149,7 @@
     let collected = [];
     let currentRoom = "BALLROOM";
     let showMap = false;
-    let lives = 3;
+    let lives = 5;
     let gameOver = false;
     let guards = [
         { x:200, y:150, w:25, h:25, speed:1, dx:1, dy:0, room:"BALLROOM", fill:"red", outline:"black" },
@@ -218,7 +218,7 @@
                 }
                 cheatDisplay.textContent = "ZKYEKO effect ended";
                 zkyekoTimeout = null;
-            },15000);
+            },120000);
         },
         "LNVNLS": () => { lives+=8; updateHUD(); },
         "OSYZNK": () => {
@@ -244,16 +244,77 @@
             guardCount = guards.length;
             updateHUD();
         },
-        "VKOGPZ": () => {
-            let allRooms = Object.keys(ROOMS);
-            for(let i=0;i<9;i++){
-                const from = ROOMS[allRooms[Math.floor(Math.random()*allRooms.length)]];
-                const to = allRooms[Math.floor(Math.random()*allRooms.length)];
-                from.doors.push({x:(Math.random()<0.5?0:1)*800, y:Math.random()*500+20, w:11, h:80, to, color: "white" });
+        "PSPTVX": () => {
+            const allRooms = Object.keys(ROOMS);
+
+            for (let i = 0; i < 18; i++) {
+                const roomKey = allRooms[Math.floor(Math.random() * allRooms.length)];
+                const room = ROOMS[roomKey];
+
+                // Create a new weapon
+                const weapon = {
+                    name: "CheatWeapon " + (i + 1),
+                    w: 20,
+                    h: 20,
+                    x: Math.random() * (800 - 40) + 20,
+                    y: Math.random() * (600 - 40) + 20
+                };
+
+                // Add weapon to the room
+                room.weapons.push(weapon);
             }
-            doorCount +=9;
+            requiredWeapons += 18;
             updateHUD();
         },
+        "VKOGPZ": () => {
+            const allRooms = Object.keys(ROOMS);
+            const DOOR_W = 11;
+            const DOOR_H = 80;
+            const MAX_ATTEMPTS = 20;
+
+            function overlaps(a, b) {
+                return (
+                    a.x < b.x + b.w &&
+                    a.x + a.w > b.x &&
+                    a.y < b.y + b.h &&
+                    a.y + a.h > b.y
+                );
+            }
+
+            for (let i = 0; i < 9; i++) {
+                const roomKey = allRooms[Math.floor(Math.random() * allRooms.length)];
+                const room = ROOMS[roomKey];
+
+                let placed = false;
+                let attempts = 0;
+
+                while (!placed && attempts < MAX_ATTEMPTS) {
+                    attempts++;
+
+                    const onLeft = Math.random() < 0.5;
+                    const door = {
+                        x: onLeft ? 0 : 789,
+                        y: Math.random() * (600 - DOOR_H - 20) + 10,
+                        w: DOOR_W,
+                        h: DOOR_H,
+                        to: allRooms[Math.floor(Math.random() * allRooms.length)],
+                        color: "white"
+                    };
+
+                    // Check against existing doors in this room
+                    const collision = room.doors.some(d => overlaps(door, d));
+
+                    if (!collision) {
+                        room.doors.push(door);
+                        placed = true;
+                    }
+                }
+            }
+
+            doorCount += 9;
+            updateHUD();
+        },
+
         "GISPZG": () => {
             const targetRoom = ROOMS[currentRoom];
             let movedWeapons = [];
@@ -629,7 +690,7 @@
         doorCount = 4;
         collected = [];  // Reset collected weapons
         currentRoom = "BALLROOM";
-        lives = 3;
+        lives = 5;
         gameOver = false;
 
         // Reset guards state (position, speed, etc.)
@@ -721,8 +782,6 @@
             }
         }
     }
-
-
 
     draw();
     gameLoop();
