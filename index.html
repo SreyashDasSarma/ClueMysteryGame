@@ -165,8 +165,8 @@
     let lives = 5;
     let gameOver = false;
     let guards = [
-        { x:200, y:150, w:25, h:25, speed:1, dx:1, dy:0, room:"BALLROOM", fill:"red", outline:"black" },
-        { x:500, y:400, w:25, h:25, speed:1, dx:0, dy:1, room:"DINING ROOM", fill:"red", outline:"black" }
+        { x:200, y:150, w:37.5, h:37.5, speed:1, dx:1, dy:0, room:"BALLROOM", fill:"red", outline:"black" },
+        { x:500, y:400, w:37.5, h:37.5, speed:1, dx:0, dy:1, room:"DINING ROOM", fill:"red", outline:"black" }
     ];
     let requiredWeapons = 6;
     let deathPenalty = 1;
@@ -220,6 +220,9 @@
     loadSprite("dancer2", "assets/Ballroom/dancer2.png");
     loadSprite("dancer3", "assets/Ballroom/dancer3.png");
     loadSprite("disco", "assets/Ballroom/discoball.png");
+
+    loadSprite("floor1", "assets/floor1.png");
+    loadSprite("floor2", "assets/floor2.png");
 
     // --- Temporary active cheat trackers ---
     let activeGuards = [];
@@ -316,8 +319,8 @@
                 // Create a new weapon
                 const weapon = {
                     name: "CheatWeapon " + (i + 1),
-                    w: 20,
-                    h: 20,
+                    w: 40,
+                    h: 40,
                     x: Math.random() * (800 - 40) + 20,
                     y: Math.random() * (600 - 40) + 20,
                     icon: "weapon"+(i%3+1)+""
@@ -437,7 +440,7 @@
         "KITCHEN":{
             floor:1,
             weapons:[
-                {name:"Knife",x:50,y:50,w:20,h:20,icon: "weapon1"}
+                {name:"Knife",x:50,y:50,w:40,h:40,icon: "weapon1"}
             ],
             walls:[
                 {x:0,y:0,w:800,h:10},
@@ -472,7 +475,7 @@
         "BALLROOM":{
             floor:1,
             weapons:[
-                {name:"Candlestick",x:300,y:100,w:20,h:20,icon: "weapon3"}
+                {name:"Candlestick",x:300,y:100,w:40,h:40,icon: "weapon3"}
             ],
             walls:[
                 {x:0,y:0,w:800,h:10},
@@ -499,7 +502,7 @@
         "HALL":{
             floor:1,
             weapons:[
-                {name:"Pistol",x:200,y:100,w:20,h:20,icon: "weapon2"}
+                {name:"Pistol",x:200,y:100,w:40,h:40,icon: "weapon2"}
             ],
             walls:[
                 {x:0,y:0,w:800,h:10},
@@ -515,7 +518,7 @@
         "DINING ROOM":{
             floor:1,
             weapons:[
-                {name:"Wrench",x:100,y:50,w:20,h:20,icon: "weapon1"}
+                {name:"Wrench",x:100,y:50,w:40,h:40,icon: "weapon1"}
             ],
             walls:[
                 {x:0,y:0,w:800,h:10},
@@ -542,7 +545,7 @@
         "ART ROOM":{
             floor:2,
             weapons:[
-                {name:"Lead Pipe",x:600,y:100,w:20,h:20,icon: "weapon2"}
+                {name:"Lead Pipe",x:600,y:100,w:40,h:40,icon: "weapon2"}
             ],
             walls:[
                 {x:0,y:0,w:800,h:10},
@@ -565,7 +568,7 @@
         "CONSERVATORY":{
             floor:2,
             weapons:[
-                {name:"Rope",x:600,y:50,w:20,h:20,icon: "weapon3"}
+                {name:"Rope",x:600,y:50,w:40,h:40,icon: "weapon3"}
             ],
             walls:[
                 {x:0,y:0,w:800,h:10},
@@ -780,34 +783,16 @@
 
             // Handle mobile layout (rooms side by side)
             if (isMobile) {
-                mapCanvas.width = 740;
-                mapCanvas.height = 90;
-                mapCtx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
-                let offsetX = 20;  // Starting position for X on mobile
-                const roomWidth = 100;  // Width of each room on the map
-                const roomHeight = 50;  // Height of each room
+                mapCanvas.width = 817.2;
+                mapCanvas.height = 200;
+                mapCtx.drawImage(sprites["floor1"],0, 0, 281.1, 200);
+                mapCtx.drawImage(sprites["floor2"], 281.1, 0, 536.1, 200);
 
-                // Draw each room horizontally (side by side)
-                allRooms.forEach((r) => {
-                    mapCtx.fillStyle = "#FFFFC8";
-                    mapCtx.fillRect(offsetX, 20, roomWidth, roomHeight); // Room box
-                    mapCtx.fillStyle = "black";
-                    mapCtx.fillText(r, offsetX + 5, 50); // Room name
-                    offsetX += roomWidth + 20;  // Increase offset for next room (horizontal layout)
-                })
             } else {
-                mapCanvas.width = 140;
-                mapCanvas.height = 440;
-                mapCtx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
-                // Handle desktop layout (rooms stacked vertically)
-                let offsetY = 20; // Starting position for Y on desktop
-                for (const r of allRooms) {
-                    mapCtx.fillStyle = "#FFFFC8";
-                    mapCtx.fillRect(20, offsetY, 100, 50); // Room box
-                    mapCtx.fillStyle = "black";
-                    mapCtx.fillText(r, 25, offsetY + 30); // Room name
-                    offsetY += 70; // Increase the vertical spacing
-                }
+                mapCanvas.width = 450;
+                mapCanvas.height = 316.2+167.9;
+                mapCtx.drawImage(sprites["floor1"],0, 0, 450, 316.2);
+                mapCtx.drawImage(sprites["floor2"],0, 316.2, 450, 167.9);
             }
 
             if (showMap) requestAnimationFrame(drawMap);
@@ -839,8 +824,8 @@
 
         // Reset guards state (position, speed, etc.)
         guards = [
-            {x: 200, y: 150, w: 25, h: 25, speed: 1, dx: 1, dy: 0, room: "BALLROOM"},
-            {x: 500, y: 400, w: 25, h: 25, speed: 1, dx: 0, dy: 1, room: "DINING ROOM"}
+            {x: 200, y: 150, w: 37.5, h: 37.5, speed: 1, dx: 1, dy: 0, room: "BALLROOM"},
+            {x: 500, y: 400, w: 37.5, h: 37.5, speed: 1, dx: 0, dy: 1, room: "DINING ROOM"}
         ];
 
         // Restore original weapon positions
