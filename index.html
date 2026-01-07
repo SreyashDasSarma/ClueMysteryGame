@@ -177,11 +177,41 @@
         img.src = src;
         sprites[key] = img;
     }
-    loadSprite("player", "assets/player.png");
-    loadSprite("guard", "assets/guard.png");
-    loadSprite("weapon1", "assets/weapon_sword.png");
-    loadSprite("weapon2", "assets/weapon_mace.png");
-    loadSprite("weapon3", "assets/weapon_bow.png");
+    //Get sprites
+    loadSprite("player", "assets/Misc/player.png");
+    loadSprite("guard", "assets/Misc/guard.png");
+    loadSprite("weapon1", "assets/Misc/weapon_sword.png");
+    loadSprite("weapon2", "assets/Misc/weapon_mace.png");
+    loadSprite("weapon3", "assets/Misc/weapon_bow.png");
+
+    //Get dining/kitchen objects
+    loadSprite("diningTable", "assets/KitchenAndDining/longtable.png");
+    loadSprite("plate", "assets/KitchenAndDining/plate.png");
+    loadSprite("diningfood1", "assets/KitchenAndDining/dining_cake.png");
+    loadSprite("diningfood2", "assets/KitchenAndDining/dining_waffle.png");
+    loadSprite("diningfood3", "assets/KitchenAndDining/dining_pudding.png");
+    loadSprite("kitchenTable", "assets/KitchenAndDining/kitchenTable.png");
+    loadSprite("kitchenfood1", "assets/KitchenAndDining/kitchen_loaf.png");
+    loadSprite("kitchenfood2", "assets/KitchenAndDining/kitchen_pie.png");
+    loadSprite("kitchenfood3", "assets/KitchenAndDining/kitchen_milk.png");
+
+    //Get art objects
+    loadSprite("art1", "assets/Art/Art1.jpg");
+    loadSprite("art2", "assets/Art/Art2.jpg");
+    loadSprite("art3", "assets/Art/Art3.jpg");
+    loadSprite("art4", "assets/Art/Art4.jpg");
+
+    //Get conservatory objects
+    loadSprite("plant1", "assets/Conservatory/Plant1.png");
+    loadSprite("plant2", "assets/Conservatory/Plant2.png");
+    loadSprite("plant3", "assets/Conservatory/Plant3.png");
+    loadSprite("plant4", "assets/Conservatory/Plant4.png");
+
+    //Get ballroom objects
+    loadSprite("dancer1", "assets/Ballroom/dancer1.png");
+    loadSprite("dancer2", "assets/Ballroom/dancer2.png");
+    loadSprite("dancer3", "assets/Ballroom/dancer3.png");
+    loadSprite("disco", "assets/Ballroom/discoball.png");
 
     // --- Temporary active cheat trackers ---
     let activeGuards = [];
@@ -410,6 +440,16 @@
             doors:[
                 {x:789,y:250,w:11,h:100,to:"BALLROOM"}
             ],
+            objects:[
+                {type:"img", x: 175, y: 310, w: 450, h: 75, icon: "kitchenTable"},
+                {type:"img", x: 245, y: 310, w: 30, h: 20, icon: "plate"},
+                {type:"img", x: 535, y: 310, w: 30, h: 20, icon: "plate"},
+                {type:"img", x: 247, y: 305, w: 25, h: 20, icon: "kitchenfood1"},
+                {type:"img", x: 392, y: 290, w: 25, h: 40, icon: "kitchenfood3"},
+                {type:"img", x: 537, y: 305, w: 25, h: 20, icon: "kitchenfood2"},
+                {type:"rect", x:200,y:100,w:400,h:20,color:"#BC6A3C"},
+                {type:"rect", x:200,y:10,w:20,h:100,color:"#BC6A3C"}
+            ],
             stairs:null
         },
         "BALLROOM":{
@@ -427,6 +467,15 @@
                 {x:0,y:250,w:11,h:100,to:"KITCHEN"},
                 {x:350,y:589,w:100,h:11,to:"DINING ROOM"},
                 {x:789,y:100,w:11,h:100,to:"HALL"}
+            ],
+            objects:[
+                {type:"img", x: 175, y: 135, w: 68/3, h: 165/3, icon: "dancer1"},
+                {type:"img", x: 610, y: 275, w: 79/3, h: 148/3, icon: "dancer2"},
+                {type:"img", x: 390, y: 410, w: 71/3, h: 108/3, icon: "dancer3"},
+                {type:"img", x: 400, y: 210, w: 68/3, h: 165/3, icon: "dancer1"},
+                {type:"img", x: 225, y: 400, w: 79/3, h: 148/3, icon: "dancer2"},
+                {type:"img", x: 510, y: 100, w: 71/3, h: 108/3, icon: "dancer3"},
+                {type:"img", x: 380, y: 11, w: 80/2, h: 117/2, icon: "disco"},
             ],
             stairs:null
         },
@@ -463,8 +512,15 @@
             ],
             stairs:{x:740,y:540,w:50,h:50,to:"ART ROOM"},
             objects:[
-                
+                {type:"img", x: 175, y: 300, w: 450, h: 75, icon: "diningTable"},
+                {type:"img", x: 245, y: 300, w: 30, h: 20, icon: "plate"},
+                {type:"img", x: 390, y: 300, w: 30, h: 20, icon: "plate"},
+                {type:"img", x: 535, y: 300, w: 30, h: 20, icon: "plate"},
+                {type:"img", x: 247, y: 295, w: 25, h: 20, icon: "diningfood1"},
+                {type:"img", x: 392, y: 295, w: 25, h: 20, icon: "diningfood2"},
+                {type:"img", x: 537, y: 295, w: 25, h: 20, icon: "diningfood3"}
             ]
+
         },
         "ART ROOM":{
             floor:2,
@@ -483,7 +539,10 @@
             ],
             stairs:{x:10,y:540,w:50,h:50,to:"DINING ROOM"},
             objects:[
-                
+                {type:"img", x: 250, y: 15, w: 300, h: 54, icon: "art1"},
+                {type:"img", x: 200, y: 200, w: 62, h: 48, icon: "art2"},
+                {type:"img", x: 550, y: 350, w: 183, h: 194, icon: "art3"},
+                {type:"img", x: 220, y: 400, w: 65, h: 42, icon: "art4"}
             ]
         },
         "CONSERVATORY":{
@@ -502,7 +561,13 @@
             ],
             stairs:null,
             objects:[
-                
+                {type:"img", x: 350, y: 15, w: 84, h: 76, icon: "plant1"},
+                {type:"img", x: 430, y: 200, w: 84, h: 76, icon: "plant1"},
+                {type:"img", x: 100, y: 30, w: 81, h: 162, icon: "plant2"},
+                {type:"img", x: 200, y: 350, w: 81, h: 162, icon: "plant2"},
+                {type:"img", x: 550, y: 350, w: 112, h: 152, icon: "plant3"},
+                {type:"img", x: 120, y: 525, w: 224, h: 64, icon: "plant4"},
+                {type:"img", x: 450, y: 525, w: 224, h: 64, icon: "plant4"}
             ]
         }
     };
@@ -520,7 +585,7 @@
         // Draw one icon per life
         for (let i = 0; i < lives; i++) {
             const img = document.createElement("img");
-            img.src = "assets/heart.png";
+            img.src = "assets/Misc/heart.png";
             img.className = "life-icon";
             img.alt = "Life";
             livesIcons.appendChild(img);
@@ -595,6 +660,7 @@
                 player.x=prevX; player.y=prevY;
             }
         }
+
         // Weapons
         for(let i=room.weapons.length-1;i>=0;i--){
             const w=room.weapons[i];
@@ -604,6 +670,25 @@
                 if(collected.length >= requiredWeapons){
                     gameOver = true;
                     alert("Congratulations! You collected all weapons and won the game!");
+                }
+            }
+        }
+        if(room.objects!=null){
+            for (const obj of room.objects) {
+                if (player.x + player.w > obj.x && player.x < obj.x + obj.w && player.y + player.h > obj.y && player.y < obj.y + obj.h) {
+                    // Handle X-axis collision
+                    if (player.x + player.w > obj.x && prevX + player.w <= obj.x) {  // Moving right into object
+                        player.x = obj.x - player.w; // Push player back to the left side
+                    } else if (player.x < obj.x + obj.w && prevX >= obj.x + obj.w) {  // Moving left into object
+                        player.x = obj.x + obj.w;
+                    }
+
+                    // Handle Y-axis collision
+                    if (player.y + player.h > obj.y && prevY + player.h <= obj.y) {  // Moving down into object
+                        player.y = obj.y - player.h; // Push player back above object
+                    } else if (player.y < obj.y + obj.h && prevY >= obj.y + obj.h) {  // Moving up into object
+                        player.y = obj.y + obj.h;
+                    }
                 }
             }
         }
@@ -637,23 +722,26 @@
             if(gameOver) return;
             ctx.clearRect(0,0,canvas.width,canvas.height);
             const room=ROOMS[currentRoom];
-            ctx.fillStyle="#FFC8C8"; ctx.fillRect(0,0,canvas.width,canvas.height); // light red
+            ctx.fillStyle="#FFE4C8"; ctx.fillRect(0,0,canvas.width,canvas.height); // light yellow
             ctx.fillStyle="#000"; for(const w of room.walls) ctx.fillRect(w.x,w.y,w.w,w.h);
             for(const d of room.doors){ ctx.fillStyle = d.color || "#FFD700"; ctx.fillRect(d.x,d.y,d.w,d.h);}
             if(room.stairs){ ctx.fillStyle="#969696"; ctx.fillRect(room.stairs.x,room.stairs.y,room.stairs.w,room.stairs.h); }
-            if(room.objects){
-                for(const obj of room.objects){
-                    if(obj.type==="circle"){
-                        ctx.fillStyle=obj.color;
-                        ctx.beginPath();
-                        ctx.arc(obj.x,obj.y,obj.radius,0,2*Math.PI); ctx.fill();
+            if (room.objects) {
+                for (const obj of room.objects) {
+                    if(obj.type == "img"){
+                        const img = sprites[obj.icon];
+                        if (img && img.complete) {
+                            ctx.drawImage(img, obj.x, obj.y, obj.w, obj.h);
+                        }
                     }
-                    else if(obj.type==="rect"){
-                        ctx.fillStyle=obj.color;
+                    else if(obj.type == "rect"){
+                        ctx.fillStyle = obj.color;
                         ctx.fillRect(obj.x,obj.y,obj.w,obj.h);
                     }
                 }
             }
+
+
             ctx.fillStyle="#008000";
             for(const w of room.weapons){
                 ctx.drawImage(sprites[w.icon],w.x,w.y,w.w,w.h);
@@ -822,8 +910,6 @@
         }
     }
 
-
-
     draw();
     gameLoop();
 
@@ -849,7 +935,6 @@
             }
         }
     });
-
 
     document.getElementById("instructionButton").addEventListener("click", ()=>{
         const instr=document.getElementById("instructions");
