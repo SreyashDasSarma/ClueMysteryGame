@@ -195,6 +195,14 @@
     loadSprite("kitchenfood2", "assets/KitchenAndDining/kitchen_pie.png");
     loadSprite("kitchenfood3", "assets/KitchenAndDining/kitchen_milk.png");
 
+    //Get kitchen additional objects
+    loadSprite("stove", "assets/KitchenAndDining/kitchenStove.png");
+    loadSprite("cup", "assets/KitchenAndDining/teacup.png");
+    loadSprite("beansack", "assets/KitchenAndDining/coffeeSack.png");
+    loadSprite("press", "assets/KitchenAndDining/coffeePress.png");
+    loadSprite("filter", "assets/KitchenAndDining/coffeeFilter.png");
+    loadSprite("coffeeCup", "assets/KitchenAndDining/coffeeCup.png");
+
     //Get art objects
     loadSprite("art1", "assets/Art/Art1.jpg");
     loadSprite("art2", "assets/Art/Art2.jpg");
@@ -447,8 +455,17 @@
                 {type:"img", x: 247, y: 305, w: 25, h: 20, icon: "kitchenfood1"},
                 {type:"img", x: 392, y: 290, w: 25, h: 40, icon: "kitchenfood3"},
                 {type:"img", x: 537, y: 305, w: 25, h: 20, icon: "kitchenfood2"},
-                {type:"rect", x:200,y:100,w:400,h:20,color:"#BC6A3C"},
-                {type:"rect", x:200,y:10,w:20,h:100,color:"#BC6A3C"}
+                {type:"rect", x:200, y:490, w:400, h:20, color:"#BC6A3C"},
+                {type:"rect", x:200, y:490, w:20, h:100, color:"#BC6A3C"},
+                {type:"img", x:250, y:0, w:300, h:122.5, icon: "stove"},
+                {type:"img", x:250, y:475, w:30, h:26, icon: "cup"},
+                {type:"img", x:370, y:475, w:30, h:26, icon: "cup"},
+                {type:"img", x:450, y:475, w:30, h:26, icon: "cup"},
+                {type:"img", x:310, y:455, w:48.4/2, h:91.6/2, icon: "coffeeCup"},
+                {type:"img", x:530, y:455, w:48.4/2, h:91.6/2, icon: "coffeeCup"},
+                {type:"img", x:200, y:460, w:47.5/2, h:91.4/2, icon: "press"},
+                {type:"img", x:200, y:510, w:71/2, h:71.7/2, icon: "filter"},
+                {type:"img", x:195, y:555, w:62.4/2, h:61/2, icon: "beansack"}
             ],
             stairs:null
         },
