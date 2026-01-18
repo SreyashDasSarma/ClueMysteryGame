@@ -235,6 +235,18 @@
 
     const secretCodes = ["ANZPYL", "PSPTVX", "ZKYEKO", "LNVNLS", "VKOGPZ", "NKUGLA"]
 
+    const codeDescript = new Map([
+        ["ANZPYL", "15 new guards spawn into the game room you are in"],
+        ["ZKYEKO", "3 doors are modified to lead to incorrect rooms"],
+        ["LNVNLS", "You gained 8 lives"],
+        ["OSYZNK", "Resets all weapons"],
+        ["TOXEYL", "Guards in a room leave building"],
+        ["PSPTVX", "18 more weapons must be collected"],
+        ["VKOGPZ", "9 extra doors are formed"],
+        ["GISPZG", "Weapons are attracted to the player’s room"],
+        ["NKUGLA", "You lose 4 lives each time you die"]
+    ]);
+    
     const cheatCodes = {
         "ANZPYL": () => {
             let added = [];
@@ -426,7 +438,7 @@
             cheatCodes[code]();
             cheatInput.value = "";
             if(secretCodes.includes(code)){
-                cheatDisplay.textContent = "Cheat activated: " + code;
+                cheatDisplay.textContent = "Cheat " + code + ": " + codeDescript.get(code);
             }else{
                 cheatDisplay.textContent = null;
             }
