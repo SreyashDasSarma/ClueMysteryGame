@@ -102,7 +102,7 @@
 <h2>Clue: The Floors of Mystery</h2>
 
 <div id="hud">
-    <p id="roomInfo">Room: BALLROOM</p>
+    <p id="roomInfo">Room: GAMEROOM</p>
     <p id="mapInfo">Guards: 2 | Doors 4</p>
     <p id="weaponsInfo">Weapons: 0/6</p>
     <p id="livesInfo">Lives:</p>
@@ -160,12 +160,12 @@
     let guardCount = 2;
     let doorCount = 4;
     let collected = [];
-    let currentRoom = "BALLROOM";
+    let currentRoom = "GAMEROOM";
     let showMap = false;
     let lives = 5;
     let gameOver = false;
     let guards = [
-        { x:200, y:150, w:37.5, h:37.5, speed:1, dx:1, dy:0, room:"BALLROOM", fill:"red", outline:"black" },
+        { x:200, y:150, w:37.5, h:37.5, speed:1, dx:1, dy:0, room:"GAMEROOM", fill:"red", outline:"black" },
         { x:500, y:400, w:37.5, h:37.5, speed:1, dx:0, dy:1, room:"DINING ROOM", fill:"red", outline:"black" }
     ];
     let requiredWeapons = 6;
@@ -184,24 +184,24 @@
     loadSprite("weapon2", "assets/Misc/weapon_mace.png");
     loadSprite("weapon3", "assets/Misc/weapon_bow.png");
 
-    //Get dining/kitchen objects
-    loadSprite("diningTable", "assets/KitchenAndDining/longtable.png");
-    loadSprite("plate", "assets/KitchenAndDining/plate.png");
-    loadSprite("diningfood1", "assets/KitchenAndDining/dining_cake.png");
-    loadSprite("diningfood2", "assets/KitchenAndDining/dining_waffle.png");
-    loadSprite("diningfood3", "assets/KitchenAndDining/dining_pudding.png");
-    loadSprite("kitchenTable", "assets/KitchenAndDining/kitchenTable.png");
-    loadSprite("kitchenfood1", "assets/KitchenAndDining/kitchen_loaf.png");
-    loadSprite("kitchenfood2", "assets/KitchenAndDining/kitchen_pie.png");
-    loadSprite("kitchenfood3", "assets/KitchenAndDining/kitchen_milk.png");
+    //Get dining/study objects
+    loadSprite("diningTable", "assets/StudyAndDining/longtable.png");
+    loadSprite("plate", "assets/StudyAndDining/plate.png");
+    loadSprite("diningfood1", "assets/StudyAndDining/dining_cake.png");
+    loadSprite("diningfood2", "assets/StudyAndDining/dining_waffle.png");
+    loadSprite("diningfood3", "assets/StudyAndDining/dining_pudding.png");
+    loadSprite("studyTable", "assets/StudyAndDining/studyTable.png");
+    loadSprite("studyfood1", "assets/StudyAndDining/study_loaf.png");
+    loadSprite("studyfood2", "assets/StudyAndDining/study_pie.png");
+    loadSprite("studyfood3", "assets/StudyAndDining/study_milk.png");
 
-    //Get kitchen additional objects
-    loadSprite("stove", "assets/KitchenAndDining/kitchenStove.png");
-    loadSprite("cup", "assets/KitchenAndDining/teacup.png");
-    loadSprite("beansack", "assets/KitchenAndDining/coffeeSack.png");
-    loadSprite("press", "assets/KitchenAndDining/coffeePress.png");
-    loadSprite("filter", "assets/KitchenAndDining/coffeeFilter.png");
-    loadSprite("coffeeCup", "assets/KitchenAndDining/coffeeCup.png");
+    //Get study additional objects
+    loadSprite("stove", "assets/StudyAndDining/studyStove.png");
+    loadSprite("cup", "assets/StudyAndDining/teacup.png");
+    loadSprite("beansack", "assets/StudyAndDining/coffeeSack.png");
+    loadSprite("press", "assets/StudyAndDining/coffeePress.png");
+    loadSprite("filter", "assets/StudyAndDining/coffeeFilter.png");
+    loadSprite("coffeeCup", "assets/StudyAndDining/coffeeCup.png");
 
     //Get art objects
     loadSprite("art1", "assets/Art/Art1.png");
@@ -219,11 +219,11 @@
     loadSprite("plant3", "assets/Conservatory/Plant3.png");
     loadSprite("plant4", "assets/Conservatory/Plant4.png");
 
-    //Get ballroom objects
-    loadSprite("dancer1", "assets/Ballroom/dancer1.png");
-    loadSprite("dancer2", "assets/Ballroom/dancer2.png");
-    loadSprite("dancer3", "assets/Ballroom/dancer3.png");
-    loadSprite("disco", "assets/Ballroom/discoball.png");
+    //Get Game Room objects
+    loadSprite("dancer1", "assets/GAMEROOM/dancer1.png");
+    loadSprite("dancer2", "assets/GAMEROOM/dancer2.png");
+    loadSprite("dancer3", "assets/GAMEROOM/dancer3.png");
+    loadSprite("disco", "assets/GAMEROOM/discoball.png");
 
     loadSprite("floor1", "assets/floor1.png");
     loadSprite("floor2", "assets/floor2.png");
@@ -455,7 +455,7 @@
 
     // ---------- Rooms ----------
     const ROOMS = {
-        "KITCHEN":{
+        "STUDY":{
             floor:1,
             weapons:[
                 {name:"Knife",x:50,y:50,w:40,h:40,icon: "weapon1"}
@@ -467,15 +467,15 @@
                 {x:0,y:590,w:800,h:10}
             ],
             doors:[
-                {x:789,y:250,w:11,h:100,to:"BALLROOM"}
+                {x:789,y:250,w:11,h:100,to:"GAMEROOM"}
             ],
             objects:[
-                {type:"img", x: 175, y: 310, w: 450, h: 75, icon: "kitchenTable"},
+                {type:"img", x: 175, y: 310, w: 450, h: 75, icon: "studyTable"},
                 {type:"img", x: 245, y: 310, w: 30, h: 20, icon: "plate"},
                 {type:"img", x: 535, y: 310, w: 30, h: 20, icon: "plate"},
-                {type:"img", x: 247, y: 305, w: 25, h: 20, icon: "kitchenfood1"},
-                {type:"img", x: 392, y: 290, w: 25, h: 40, icon: "kitchenfood3"},
-                {type:"img", x: 537, y: 305, w: 25, h: 20, icon: "kitchenfood2"},
+                {type:"img", x: 247, y: 305, w: 25, h: 20, icon: "studyfood1"},
+                {type:"img", x: 392, y: 290, w: 25, h: 40, icon: "studyfood3"},
+                {type:"img", x: 537, y: 305, w: 25, h: 20, icon: "studyfood2"},
                 {type:"rect", x:200, y:490, w:400, h:20, color:"#BC6A3C"},
                 {type:"rect", x:200, y:490, w:20, h:100, color:"#BC6A3C"},
                 {type:"img", x:250, y:0, w:300, h:122.5, icon: "stove"},
@@ -490,7 +490,7 @@
             ],
             stairs:null
         },
-        "BALLROOM":{
+        "GAMEROOM":{
             floor:1,
             weapons:[
                 {name:"Candlestick",x:300,y:100,w:40,h:40,icon: "weapon3"}
@@ -502,9 +502,9 @@
                 {x:0,y:590,w:800,h:10}
             ],
             doors:[
-                {x:0,y:250,w:11,h:100,to:"KITCHEN"},
+                {x:0,y:250,w:11,h:100,to:"STUDY"},
                 {x:350,y:589,w:100,h:11,to:"DINING ROOM"},
-                {x:789,y:100,w:11,h:100,to:"HALL"}
+                {x:789,y:100,w:11,h:100,to:"LIBRARY"}
             ],
             objects:[
                 {type:"img", x: 175, y: 135, w: 68/3, h: 165/3, icon: "dancer1"},
@@ -517,7 +517,7 @@
             ],
             stairs:null
         },
-        "HALL":{
+        "LIBRARY":{
             floor:1,
             weapons:[
                 {name:"Pistol",x:200,y:100,w:40,h:40,icon: "weapon2"}
@@ -529,7 +529,7 @@
                 {x:0,y:590,w:800,h:10}
             ],
             doors:[
-                {x:0,y:100,w:11,h:100,to:"BALLROOM"}
+                {x:0,y:100,w:11,h:100,to:"GAMEROOM"}
             ],
             stairs:null
         },
@@ -546,7 +546,7 @@
                 {x:730,y:530,w:60,h:10}
             ],
             doors:[
-                {x:350,y:0,w:100,h:11,to:"BALLROOM"}
+                {x:350,y:0,w:100,h:11,to:"GAMEROOM"}
             ],
             stairs:{x:715,y:525,w:115.1/3*2,h:111.2/3*2,to:"ART ROOM",icon:"stairUp"},
             objects:[
@@ -842,13 +842,13 @@
         guardCount = 2;
         doorCount = 4;
         collected = [];  // Reset collected weapons
-        currentRoom = "BALLROOM";
+        currentRoom = "GAMEROOM";
         lives = 5;
         gameOver = false;
 
         // Reset guards state (position, speed, etc.)
         guards = [
-            {x: 200, y: 150, w: 37.5, h: 37.5, speed: 1, dx: 1, dy: 0, room: "BALLROOM"},
+            {x: 200, y: 150, w: 37.5, h: 37.5, speed: 1, dx: 1, dy: 0, room: "GAMEROOM"},
             {x: 500, y: 400, w: 37.5, h: 37.5, speed: 1, dx: 0, dy: 1, room: "DINING ROOM"}
         ];
 
