@@ -203,6 +203,13 @@
     loadSprite("filter", "assets/StudyAndDining/coffeeFilter.png");
     loadSprite("coffeeCup", "assets/StudyAndDining/coffeeCup.png");
 
+    //Get library additional objects
+    loadSprite("book", "assets/Library/book.png");
+    loadSprite("shelf1", "assets/Library/bookshelf1.png");
+    loadSprite("shelf2", "assets/Library/bookshelf2.png");
+    loadSprite("cat", "assets/Library/cat1.png");
+    loadSprite("computer", "assets/Library/computer.png");
+
     //Get art objects
     loadSprite("art1", "assets/Art/Art1.png");
     loadSprite("art2", "assets/Art/Art2.png");
@@ -224,6 +231,7 @@
     loadSprite("dancer2", "assets/GAMEROOM/dancer2.png");
     loadSprite("dancer3", "assets/GAMEROOM/dancer3.png");
     loadSprite("disco", "assets/GAMEROOM/discoball.png");
+    loadSprite("paradoxGuy", "assets/GAMEROOM/paradoxGuy.png");
 
     loadSprite("floor1", "assets/floor1.png");
     loadSprite("floor2", "assets/floor2.png");
@@ -510,17 +518,17 @@
                 {type:"img", x: 175, y: 135, w: 68/3, h: 165/3, icon: "dancer1"},
                 {type:"img", x: 610, y: 275, w: 79/3, h: 148/3, icon: "dancer2"},
                 {type:"img", x: 390, y: 410, w: 71/3, h: 108/3, icon: "dancer3"},
-                {type:"img", x: 400, y: 210, w: 68/3, h: 165/3, icon: "dancer1"},
+                {type:"img", x: 510, y: 100, w: 68/3, h: 165/3, icon: "dancer1"},
                 {type:"img", x: 225, y: 400, w: 79/3, h: 148/3, icon: "dancer2"},
-                {type:"img", x: 510, y: 100, w: 71/3, h: 108/3, icon: "dancer3"},
-                {type:"img", x: 380, y: 11, w: 80/2, h: 117/2, icon: "disco"},
+                {type:"img", x: 400, y: 150, w: 71/3, h: 108/3, icon: "dancer3"},
+                {type:"img", x: 380, y: 300, w: 1432/35, h: 1465/35, icon: "paradoxGuy"},
             ],
             stairs:null
         },
         "LIBRARY":{
             floor:1,
             weapons:[
-                {name:"Pistol",x:200,y:100,w:40,h:40,icon: "weapon2"}
+                {name:"Pistol",x:600,y:450,w:40,h:40,icon: "weapon2"}
             ],
             walls:[
                 {x:0,y:0,w:800,h:10},
@@ -530,6 +538,32 @@
             ],
             doors:[
                 {x:0,y:100,w:11,h:100,to:"GAMEROOM"}
+            ],
+            objects:[
+                {type:"img", x: 175, y: 135, w: 406/10, h: 410/10, icon: "book"},
+                {type:"img", x: 170, y: 100, w: 1398/25, h: 1501/25, icon: "cat"},
+
+                {type:"img", x: 740, y: 130, w: 1165/20, h: 1117/10, icon: "shelf1"},
+                {type:"img", x: 740, y: 10, w: 1030/20, h: 1213/10, icon: "shelf2"},
+                {type:"img", x: 740, y: 360, w: 1165/20, h: 1117/10, icon: "shelf1"},
+                {type:"img", x: 740, y: 240, w: 1030/20, h: 1213/10, icon: "shelf2"},
+                {type:"img", x: 740, y: 470, w: 1030/20, h: 1213/10, icon: "shelf2"},
+
+                {type:"img", x: 350, y: 130, w: 1165/20, h: 1117/10, icon: "shelf1"},
+                {type:"img", x: 350, y: 10, w: 1030/20, h: 1213/10, icon: "shelf2"},
+                {type:"img", x: 350, y: 240, w: 1030/20, h: 1213/10, icon: "shelf2"},
+                {type:"img", x: 350, y: 470, w: 1030/20, h: 1213/10, icon: "shelf2"},
+
+                {type:"img", x: 490, y: 300, w: 406/10, h: 410/10, icon: "book"},
+                {type:"img", x: 490, y: 265, w: 1398/25, h: 1501/25, icon: "cat"},
+
+                {type:"img", x: 12, y: 10, w: 1030/20, h: 1213/10, icon: "shelf2"},
+                {type:"img", x: 12, y: 360, w: 1165/20, h: 1117/10, icon: "shelf1"},
+                {type:"img", x: 12, y: 240, w: 1030/20, h: 1213/10, icon: "shelf2"},
+                {type:"img", x: 12, y: 470, w: 1030/20, h: 1213/10, icon: "shelf2"},
+
+                {type:"img", x: 220, y: 430, w: 1398/25, h: 1501/25, icon: "diningTable"},
+                {type:"img", x: 225, y: 400, w: 434/10, h: 438/10, icon: "computer"},
             ],
             stairs:null
         },
